@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "324693596002",
+    "firebase_url": "https://caht-box-default-rtdb.firebaseio.com",
+    "project_id": "caht-box",
+    "storage_bucket": "caht-box.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:324693596002:android:f5d74f3990e07b5ac3be3b",
+        "android_client_info": {
+          "package_name": "com.aistudio.chatboxpro.qkza"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "324693596002-lr94hjdor4k7mgah7mfnqpkboocbolio.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAwiMHd5xaq7g40MMtdw-SNF0PANRFCOvA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "324693596002-lr94hjdor4k7mgah7mfnqpkboocbolio.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
