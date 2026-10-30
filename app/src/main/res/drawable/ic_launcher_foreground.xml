@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Chat bubble background in foreground layer with subtle drop -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,26 C38.54,26 26,37.64 26,52 C26,57.18 27.64,61.98 30.46,66 L27.2,78.2 C26.96,79.1 27.8,79.88 28.66,79.58 L41.28,75.2 C45.18,77.02 49.48,78 54,78 C69.46,78 82,66.36 82,52 C82,37.64 69.46,26 54,26 Z" />
+    <!-- Embedded lock glyph in WhatsApp dark emerald #075E54 -->
+    <path
+        android:fillColor="#075E54"
+        android:pathData="M54,40 C50.69,40 48,42.69 48,46 L48,48 C46.9,48 46,48.9 46,50 L46,62 C46,63.1 46.9,64 48,64 L60,64 C61.1,64 62,63.1 62,62 L62,50 C62,48.9 61.1,48 60,48 L60,46 C60,42.69 57.31,40 54,40 Z M54,42.5 C55.93,42.5 57.5,44.07 57.5,46 L57.5,48 L50.5,48 L50.5,46 C50.5,44.07 52.07,42.5 54,42.5 Z M54,53 C55.1,53 56,53.9 56,55 C56,55.74 55.4,56.34 54.7,56.46 L55,59 L53,59 L53.3,56.46 C52.6,56.34 52,55.74 52,55 C52,53.9 52.9,53 54,53 Z" />
+</vector>

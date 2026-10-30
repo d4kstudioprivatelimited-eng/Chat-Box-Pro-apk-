@@ -1,0 +1,6 @@
+{
+  "summary":  "Implementation plan for 100% offline self-extraction of ChatBoxPro.apk from installed device storage to the public Downloads folder, combined with direct share via WhatsApp/Bluetooth and native package installation with unknown sources permission check.",
+  "updatedAt":  "2026-10-29T00:33:36.917743297Z",
+  "requestFeedback":  true,
+  "userFacing":  true
+}

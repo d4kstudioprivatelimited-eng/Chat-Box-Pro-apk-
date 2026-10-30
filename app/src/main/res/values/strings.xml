@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Chat Box Pro</string>
+    <string name="company_name">D 4K Studio Private Limited</string>
+    <string name="developer_name">Danish Raja</string>
+    <string name="company_address">Naya Basti Bokaro Thermal, Jharkhand, India</string>
+    <string name="company_website">https://mr4k09.000.pe</string>
+    <string name="company_phone">9430320021</string>
+    <string name="firestore_database_id">(default)</string>
+</resources>

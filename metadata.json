@@ -1,0 +1,6 @@
+{
+  "name": "Chat Box Pro",
+  "description": "Chat Box Pro by D 4K Studio Private Limited (Developer: Danish Raja). Premium messaging app with real-time chats, 24h status stories, P2P calling, E2EE security, and contact sync.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

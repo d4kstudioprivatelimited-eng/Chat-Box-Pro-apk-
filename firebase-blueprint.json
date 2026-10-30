@@ -1,0 +1,61 @@
+{
+  "schemaVersion": "1.0.0",
+  "entities": {
+    "UserProfile": {
+      "collection": "users",
+      "documentId": "userId",
+      "fields": {
+        "displayName": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "photoUrl": { "type": "string" },
+        "bio": { "type": "string" },
+        "isOnline": { "type": "boolean" },
+        "lastSeen": { "type": "number" },
+        "publicKey": { "type": "string" },
+        "createdAt": { "type": "timestamp" },
+        "updatedAt": { "type": "timestamp" }
+      }
+    },
+    "ChatRoom": {
+      "collection": "chat_rooms",
+      "documentId": "roomId",
+      "fields": {
+        "name": { "type": "string" },
+        "isGroup": { "type": "boolean" },
+        "participants": { "type": "array" },
+        "participantNames": { "type": "map" },
+        "participantAvatars": { "type": "map" },
+        "lastMessageText": { "type": "string" },
+        "lastMessageSenderId": { "type": "string" },
+        "lastMessageTimestamp": { "type": "number" },
+        "groupAdminIds": { "type": "array" },
+        "groupDescription": { "type": "string" },
+        "isOnlyAdminCanPost": { "type": "boolean" },
+        "unreadCounts": { "type": "map" },
+        "createdAt": { "type": "timestamp" },
+        "updatedAt": { "type": "timestamp" }
+      }
+    },
+    "Message": {
+      "collection": "chat_rooms/{roomId}/messages",
+      "documentId": "messageId",
+      "fields": {
+        "roomId": { "type": "string" },
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "content": { "type": "string" },
+        "mediaType": { "type": "string" },
+        "mediaUrl": { "type": "string" },
+        "mediaDuration": { "type": "number" },
+        "mediaFileSize": { "type": "string" },
+        "status": { "type": "string" },
+        "isEncrypted": { "type": "boolean" },
+        "reaction": { "type": "string" },
+        "replyToMessageId": { "type": "string" },
+        "replyToText": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "createdAt": { "type": "timestamp" }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+# Render.com Blueprint Specification for Chat Box Pro Email Proxy
+# Deploy with: render.com -> New -> Blueprint -> Connect repo
+services:
+  - type: web
+    name: chatboxpro-email-proxy
+    runtime: node
+    plan: free
+    region: oregon
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: BREVO_API_KEY
+        sync: false
+      - key: SENDER_NAME
+        value: Chat Box Pro
+      - key: SENDER_EMAIL
+        value: noreply@mr4k09.000.pe
