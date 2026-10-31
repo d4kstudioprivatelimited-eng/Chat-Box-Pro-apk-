@@ -173,10 +173,12 @@ fun AppLockScreen(
                                                     onSuccess = {
                                                         appLockManager.unlockWithBiometrics()
                                                     },
-                                                    onError = { _ -> }
+                                                    onError = { err ->
+                                                        android.widget.Toast.makeText(context, err, android.widget.Toast.LENGTH_SHORT).show()
+                                                    }
                                                 )
                                             } else {
-                                                appLockManager.unlockWithBiometrics()
+                                                android.widget.Toast.makeText(context, "Biometric sensor unavailable. Enter your 4-digit PIN.", android.widget.Toast.LENGTH_SHORT).show()
                                             }
                                         },
 

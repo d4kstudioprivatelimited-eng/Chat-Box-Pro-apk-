@@ -8,6 +8,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import com.google.firebase.Firebase
+import com.google.firebase.ai.ai
 import java.util.concurrent.TimeUnit
 
 class D4KAiSdkService private constructor() {
@@ -70,12 +72,26 @@ class D4KAiSdkService private constructor() {
                         rawString.trim()
                     }
                 } else {
-                    "D4K AI Auto-Reply: Thanks for contacting Chat Box Pro! I'll get back to you shortly."
+                    generateGeminiFallback(userPrompt)
                 }
             }
         } catch (e: Exception) {
-            Log.e("D4KAiSdkService", "Error calling D4K AI SDK: ${e.message}")
-            "Hello! I am currently away. D4K AI Auto-Reply active: '${userPrompt.take(20)}...'"
+            Log.e("D4KAiSdkService", "Error calling D4K AI SDK: ${e.message}, invoking Gemini AI fallback...")
+            generateGeminiFallback(userPrompt)
+        }
+    }
+
+    private suspend fun generateGeminiFallback(userPrompt: String): String {
+        return try {
+            val model = com.google.firebase.Firebase.ai.generativeModel("gemini-3.8-flash")
+            val response = kotlinx.coroutines.withTimeoutOrNull(10000L) {
+                model.generateContent("You are Chat Box Pro Auto AI Assistant. Write a friendly, helpful, short chat response (1-2 sentences max) replying to:\n$userPrompt")
+            }
+            response?.text?.trim()?.ifBlank { null }
+                ?: "Thanks for reaching out! Auto AI Reply is active and I will respond soon."
+        } catch (e: Exception) {
+            Log.w("D4KAiSdkService", "Gemini AI fallback exception: ${e.message}")
+            "Thanks for reaching out! Auto AI Reply is active."
         }
     }
 

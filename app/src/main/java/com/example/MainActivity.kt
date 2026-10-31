@@ -78,17 +78,32 @@ class MainActivity :FragmentActivity () {
             val currentLang by com.example.ui.localization.LocalizationManager.currentLanguage.collectAsState()
             val currentStrings by com.example.ui.localization.LocalizationManager.currentStrings.collectAsState()
 
+            var hasStartupPermissions by remember {
+                mutableStateOf(
+                    androidx.core.content.ContextCompat.checkSelfPermission(this@MainActivity, android.Manifest.permission.READ_CONTACTS) == android.content.pm.PackageManager.PERMISSION_GRANTED &&
+                    androidx.core.content.ContextCompat.checkSelfPermission(this@MainActivity, android.Manifest.permission.CAMERA) == android.content.pm.PackageManager.PERMISSION_GRANTED &&
+                    androidx.core.content.ContextCompat.checkSelfPermission(this@MainActivity, android.Manifest.permission.RECORD_AUDIO) == android.content.pm.PackageManager.PERMISSION_GRANTED
+                )
+            }
+
             ChatBoxProTheme(darkTheme = useDarkMode) {
                 com.example.ui.localization.ProvideLocalizedStrings(currentStrings, currentLang) {
                     Surface(modifier = Modifier.fillMaxSize()) {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            val navController = rememberNavController()
-
-                        val startDestination = if (authState.isAuthenticated) {
-                            if (authState.isProfileSetupDone) Screen.Home.route else Screen.ProfileSetup.route
+                        if (!hasStartupPermissions) {
+                            com.example.ui.screens.auth.StartupPermissionsSplashScreen(
+                                onPermissionsGranted = {
+                                    hasStartupPermissions = true
+                                }
+                            )
                         } else {
-                            Screen.EmailAuth.route
-                        }
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                val navController = rememberNavController()
+
+                                val startDestination = if (authState.isAuthenticated) {
+                                    if (authState.isProfileSetupDone) Screen.Home.route else Screen.ProfileSetup.route
+                                } else {
+                                    Screen.EmailAuth.route
+                                }
 
                         NavHost(
                             navController = navController,
@@ -350,6 +365,7 @@ class MainActivity :FragmentActivity () {
                 }
             }
         }
+    }
     }
 
     fun showBiometricPrompt(

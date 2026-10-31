@@ -378,4 +378,51 @@ class FirestoreChatRepository(
             Log.e(TAG, "Error deleting message $messageId: ${e.message}", e)
         }
     }
+
+    // =========================================================================
+    // 4. Status / Story Documents (Real-Time Cloud Storage Sync)
+    // =========================================================================
+
+    /**
+     * Real-time observation of active 24-hour stories posted across Cloud Firestore.
+     */
+    fun observeActiveStories(): Flow<List<com.example.data.firebase.firestore.models.StoryDocument>> = callbackFlow {
+        val now = System.currentTimeMillis()
+        val query = firestore.collection("stories")
+            .whereGreaterThan("expiresAt", now)
+
+        val registration = query.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                Log.w(TAG, "Error observing stories: ${error.message}")
+                trySend(emptyList())
+                return@addSnapshotListener
+            }
+            if (snapshot != null) {
+                val storyDocs = snapshot.toObjects(com.example.data.firebase.firestore.models.StoryDocument::class.java)
+                trySend(storyDocs.sortedByDescending { it.timestamp })
+            }
+        }
+
+        awaitClose {
+            registration.remove()
+        }
+    }
+
+    /**
+     * Posts a new 24-hour story document to Cloud Firestore.
+     */
+    suspend fun postStory(story: com.example.data.firebase.firestore.models.StoryDocument): String {
+        val storyId = story.id.ifBlank { "story_${UUID.randomUUID()}" }
+        val finalStory = story.copy(id = storyId)
+        try {
+            firestore.collection("stories")
+                .document(storyId)
+                .set(finalStory)
+                .awaitTask()
+            Log.d(TAG, "Story $storyId published to Cloud Firestore")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error posting story: ${e.message}", e)
+        }
+        return storyId
+    }
 }

@@ -437,7 +437,12 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
 
     fun postStory(caption: String, imageUrl: String = "", bgColor: Long = 0xFF008069) {
         viewModelScope.launch {
-            repository.postStory(caption, imageUrl, bgColor)
+            repository.postStory(
+                textCaption = caption,
+                imageUrl = imageUrl,
+                bgColor = bgColor,
+                firestoreRepo = firestoreRepository
+            )
         }
     }
 }

@@ -296,13 +296,21 @@ class ChatRepository(private val database: ChatBoxDatabase) {
         return id
     }
 
-    suspend fun postStory(textCaption: String, imageUrl: String = "", bgColor: Long = 0xFF008069) {
+    suspend fun postStory(
+        textCaption: String,
+        imageUrl: String = "",
+        bgColor: Long = 0xFF008069,
+        firestoreRepo: com.example.data.firebase.firestore.FirestoreChatRepository? = null,
+        userName: String = "My Status",
+        userAvatar: String = ""
+    ) {
         val now = System.currentTimeMillis()
+        val storyId = UUID.randomUUID().toString()
         val story = StoryEntity(
-            id = UUID.randomUUID().toString(),
+            id = storyId,
             authorId = "me",
-            authorName = "My Status",
-            authorAvatar = "",
+            authorName = userName,
+            authorAvatar = userAvatar,
             type = if (imageUrl.isNotEmpty()) "IMAGE" else "TEXT",
             textCaption = textCaption,
             backgroundColor = bgColor,
@@ -313,6 +321,24 @@ class ChatRepository(private val database: ChatBoxDatabase) {
             viewsCount = 0
         )
         storyDao.insertStory(story)
+
+        firestoreRepo?.let { repo ->
+            try {
+                repo.postStory(
+                    com.example.data.firebase.firestore.models.StoryDocument(
+                        id = storyId,
+                        userId = "me",
+                        userName = userName,
+                        userAvatarUrl = userAvatar,
+                        caption = textCaption,
+                        mediaUrl = imageUrl,
+                        bgColor = bgColor,
+                        timestamp = now,
+                        expiresAt = now + 86400000L
+                    )
+                )
+            } catch (_: Exception) {}
+        }
     }
 
     suspend fun markStoryViewed(storyId: String) {
