@@ -54,6 +54,7 @@ fun ChatDetailScreen(
     var showDisappearingDialog by remember { mutableStateOf(false) }
     var disappearingSetting by remember { mutableStateOf("Off") }
     var menuExpanded by remember { mutableStateOf(false) }
+    var showUserProfileDialog by remember { mutableStateOf(false) }
     var replyToMessage by remember { mutableStateOf<MessageEntity?>(null) }
 
     val cameraRequester = com.example.util.rememberPermissionRequester(com.example.util.AppPermission.CAMERA) {
@@ -65,6 +66,7 @@ fun ChatDetailScreen(
 
     LaunchedEffect(chatId) {
         chatViewModel.markChatRead(chatId)
+        chatViewModel.logProfileVisit(chatId)
     }
 
     LaunchedEffect(messages.size) {
@@ -80,7 +82,7 @@ fun ChatDetailScreen(
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
-                            .clickable { showEncryptionInfo = true }
+                            .clickable { showUserProfileDialog = true }
                             .padding(vertical = 4.dp)
                     ) {
                         if (chatState?.avatarUrl?.isNotEmpty() == true) {
@@ -541,6 +543,113 @@ fun ChatDetailScreen(
             confirmButton = {
                 TextButton(onClick = { showDisappearingDialog = false }) {
                     Text("Done")
+                }
+            }
+        )
+    }
+
+    if (showUserProfileDialog) {
+        val fetchedProfile by chatViewModel.firestoreRepository.observeUserProfile(chatId).collectAsState(initial = null)
+        AlertDialog(
+            onDismissRequest = { showUserProfileDialog = false },
+            title = null,
+            text = {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(90.dp)
+                            .clip(CircleShape)
+                            .background(WhatsAppEmerald.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (fetchedProfile?.photoUrl?.isNotEmpty() == true || chatState?.avatarUrl?.isNotEmpty() == true) {
+                            AsyncImage(
+                                model = fetchedProfile?.photoUrl?.ifEmpty { chatState?.avatarUrl } ?: chatState?.avatarUrl,
+                                contentDescription = chatState?.name,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                            )
+                        } else {
+                            Icon(Icons.Default.Person, contentDescription = null, tint = WhatsAppEmerald, modifier = Modifier.size(48.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            fetchedProfile?.displayName?.ifEmpty { chatState?.name } ?: chatState?.name ?: "User Profile",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                        if (fetchedProfile?.isVerified == true) {
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(Icons.Default.Verified, contentDescription = "Verified", tint = Color(0xFF1DA1F2), modifier = Modifier.size(18.dp))
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Text(
+                        fetchedProfile?.phoneNumber?.ifEmpty { chatState?.phone } ?: chatState?.phone ?: "",
+                        fontSize = 13.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Surface(
+                        shape = RoundedCornerShape(12.dp),
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Column(modifier = Modifier.padding(12.dp)) {
+                            Text("About / Status Bio:", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = WhatsAppEmerald)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                fetchedProfile?.bio?.ifEmpty { "Available ⚡ Using Chat Box Pro" } ?: "Available ⚡ Using Chat Box Pro",
+                                fontSize = 13.sp
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround
+                    ) {
+                        IconButton(onClick = {
+                            showUserProfileDialog = false
+                            onStartCall(chatId, chatState?.name ?: "Contact", chatState?.avatarUrl ?: "", "VOICE")
+                        }) {
+                            Icon(Icons.Default.Call, contentDescription = "Voice Call", tint = WhatsAppEmerald)
+                        }
+                        IconButton(onClick = {
+                            showUserProfileDialog = false
+                            onStartCall(chatId, chatState?.name ?: "Contact", chatState?.avatarUrl ?: "", "VIDEO")
+                        }) {
+                            Icon(Icons.Default.Videocam, contentDescription = "Video Call", tint = WhatsAppEmerald)
+                        }
+                        IconButton(onClick = {
+                            showUserProfileDialog = false
+                            showEncryptionInfo = true
+                        }) {
+                            Icon(Icons.Default.Lock, contentDescription = "E2EE Security", tint = WhatsAppEmerald)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showUserProfileDialog = false }) {
+                    Text("Close")
                 }
             }
         )

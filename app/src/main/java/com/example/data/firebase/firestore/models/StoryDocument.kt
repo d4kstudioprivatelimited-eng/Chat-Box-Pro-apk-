@@ -12,5 +12,9 @@ data class StoryDocument(
     val mediaUrl: String = "",
     val bgColor: Long = 0xFF008069,
     val timestamp: Long = System.currentTimeMillis(),
-    val expiresAt: Long = System.currentTimeMillis() + (24 * 60 * 60 * 1000L)
+    val expiresAt: Long = System.currentTimeMillis() + (24 * 60 * 60 * 1000L),
+    val viewers: List<String> = emptyList(),
+    val likesCount: Int = 0,
+    val likedUsers: List<String> = emptyList(),
+    val repliesCount: Int = 0
 )

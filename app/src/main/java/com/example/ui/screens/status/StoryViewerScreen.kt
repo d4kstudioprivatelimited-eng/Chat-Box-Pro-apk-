@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -203,6 +204,21 @@ fun StoryViewerScreen(
                         color = Color.White.copy(alpha = 0.75f),
                         fontSize = 11.sp
                     )
+                }
+
+                if (currentStory.authorId == "me" || currentStory.authorName.contains("My Status")) {
+                    IconButton(
+                        onClick = {
+                            chatViewModel.deleteStory(currentStory.id)
+                            onClose()
+                        }
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete Status",
+                            tint = Color.Red
+                        )
+                    }
                 }
 
                 IconButton(onClick = onClose) {

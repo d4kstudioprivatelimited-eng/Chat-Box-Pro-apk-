@@ -18,6 +18,9 @@ interface StoryDao {
     @Query("UPDATE stories SET isViewed = 1 WHERE id = :storyId")
     suspend fun markStoryViewed(storyId: String)
 
+    @Query("DELETE FROM stories WHERE id = :storyId")
+    suspend fun deleteStory(storyId: String)
+
     @Query("DELETE FROM stories WHERE expiresAt <= :currentTime")
     suspend fun cleanupExpiredStories(currentTime: Long = System.currentTimeMillis())
 

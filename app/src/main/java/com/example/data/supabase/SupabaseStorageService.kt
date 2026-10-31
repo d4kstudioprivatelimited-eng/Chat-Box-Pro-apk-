@@ -75,6 +75,10 @@ class SupabaseStorageService private constructor() {
         fileBytes: ByteArray,
         mimeType: String
     ): String = withContext(Dispatchers.IO) {
+        val maxSizeBytes = 100 * 1024 * 1024 // 100 MB Limit
+        if (fileBytes.size > maxSizeBytes) {
+            throw IllegalArgumentException("File exceeds maximum 100 MB upload limit.")
+        }
         val requestUrl = "$supabaseUrl/storage/v1/object/$bucket/$fileName"
         val request = Request.Builder()
             .url(requestUrl)

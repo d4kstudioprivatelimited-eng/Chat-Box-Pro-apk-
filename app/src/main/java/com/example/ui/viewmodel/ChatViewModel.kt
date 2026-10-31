@@ -58,6 +58,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     )
     val isAutoTranslateEnabled: StateFlow<Boolean> = _isAutoTranslateEnabled.asStateFlow()
 
+    private val _isVoiceControlEnabled = MutableStateFlow(
+        prefs.getBoolean("is_voice_control_enabled", false)
+    )
+    val isVoiceControlEnabled: StateFlow<Boolean> = _isVoiceControlEnabled.asStateFlow()
+
     private val defaultQuickReplies = listOf("Sounds good! 👍", "On my way! 🚀", "Call you in 5 📞", "Thanks! 🙏", "Send details 📄")
     private val _customQuickReplies = MutableStateFlow<List<String>>(
         prefs.getStringSet("custom_quick_replies", defaultQuickReplies.toSet())?.toList() ?: defaultQuickReplies
@@ -86,6 +91,25 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleAutoTranslate(enabled: Boolean) {
         prefs.edit().putBoolean("is_auto_translate_enabled", enabled).apply()
         _isAutoTranslateEnabled.value = enabled
+    }
+
+    fun toggleVoiceControl(enabled: Boolean) {
+        prefs.edit().putBoolean("is_voice_control_enabled", enabled).apply()
+        _isVoiceControlEnabled.value = enabled
+    }
+
+    fun executeVoiceCommand(command: String, onAction: (String, String) -> Unit) {
+        val lower = command.lowercase().trim()
+        when {
+            lower.contains("message") || lower.contains("chat") || lower.contains("send") -> {
+                val targetName = lower.substringAfter("to").trim().ifEmpty { "Rahul" }
+                onAction("OPEN_CHAT", targetName)
+            }
+            lower.contains("settings") -> onAction("NAVIGATE", "settings")
+            lower.contains("status") || lower.contains("story") -> onAction("NAVIGATE", "status")
+            lower.contains("call") -> onAction("NAVIGATE", "calls")
+            else -> onAction("UNKNOWN", command)
+        }
     }
 
 
@@ -515,6 +539,32 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                         bio = "Profile viewed by Alex Developer at ${System.currentTimeMillis()}"
                     )
                 )
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun deleteStory(storyId: String) {
+        viewModelScope.launch {
+            try {
+                database.storyDao().deleteStory(storyId)
+                firestoreRepository.deleteStory(storyId)
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun likeStory(storyId: String, userId: String = "me") {
+        viewModelScope.launch {
+            try {
+                firestoreRepository.likeStory(storyId, userId)
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun recordStoryView(storyId: String, userId: String = "me") {
+        viewModelScope.launch {
+            try {
+                database.storyDao().markStoryViewed(storyId)
+                firestoreRepository.recordStoryView(storyId, userId)
             } catch (_: Exception) {}
         }
     }

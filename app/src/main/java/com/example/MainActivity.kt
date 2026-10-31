@@ -26,8 +26,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.ui.platform.testTag
 import androidx.compose.material3.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
@@ -279,6 +281,48 @@ class MainActivity :FragmentActivity () {
                             com.example.ui.screens.security.AppLockScreen(
                                 appLockManager = appLockManager
                             )
+                        }
+
+                        // Sahiba AI Autonomous Agent Floating Trigger FAB
+                        if (authState.isAuthenticated && authState.isProfileSetupDone && !isAppLocked) {
+                            var showSahibaAiOverlay by remember { mutableStateOf(false) }
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(bottom = 76.dp, end = 16.dp),
+                                contentAlignment = Alignment.BottomEnd
+                            ) {
+                                FloatingActionButton(
+                                    onClick = { showSahibaAiOverlay = true },
+                                    containerColor = WhatsAppEmerald,
+                                    contentColor = androidx.compose.ui.graphics.Color.White,
+                                    shape = CircleShape,
+                                    modifier = Modifier
+                                        .size(56.dp)
+                                        .testTag("sahiba_ai_fab_btn")
+                                ) {
+                                    Icon(
+                                        Icons.Default.AutoAwesome,
+                                        contentDescription = "Activate Sahiba AI Agent",
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+                            }
+
+                            if (showSahibaAiOverlay) {
+                                com.example.ui.components.SahibaAiAutonomousAgentOverlay(
+                                    chatViewModel = chatViewModel,
+                                    authViewModel = authViewModel,
+                                    onNavigateToChat = { chatId ->
+                                        navController.navigate(Screen.ChatDetail.createRoute(chatId))
+                                    },
+                                    onNavigateToSettings = {
+                                        navController.navigate(Screen.Settings.route)
+                                    },
+                                    onClose = { showSahibaAiOverlay = false }
+                                )
+                            }
                         }
 
                         // Heads-Up In-App Push Notification Banner

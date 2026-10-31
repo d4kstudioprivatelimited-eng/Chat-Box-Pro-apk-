@@ -448,4 +448,63 @@ class FirestoreChatRepository(
         }
         return storyId
     }
+
+    /**
+     * Deletes a story document manually from Cloud Firestore.
+     */
+    suspend fun deleteStory(storyId: String) {
+        if (storyId.isBlank()) return
+        try {
+            firestore.collection("stories")
+                .document(storyId)
+                .delete()
+                .awaitTask()
+            Log.d(TAG, "Story $storyId deleted from Cloud Firestore")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting story $storyId: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Increments real-time like count for a story document in Cloud Firestore.
+     */
+    suspend fun likeStory(storyId: String, userId: String) {
+        if (storyId.isBlank() || userId.isBlank()) return
+        try {
+            val docRef = firestore.collection("stories").document(storyId)
+            firestore.runTransaction { transaction ->
+                val snapshot = transaction.get(docRef)
+                val story = snapshot.toObject(com.example.data.firebase.firestore.models.StoryDocument::class.java)
+                if (story != null && !story.likedUsers.contains(userId)) {
+                    val updatedLikes = story.likedUsers + userId
+                    transaction.update(docRef, mapOf(
+                        "likesCount" to updatedLikes.size,
+                        "likedUsers" to updatedLikes
+                    ))
+                }
+            }.awaitTask()
+        } catch (e: Exception) {
+            Log.w(TAG, "Error liking story $storyId: ${e.message}")
+        }
+    }
+
+    /**
+     * Records story view in real-time in Cloud Firestore.
+     */
+    suspend fun recordStoryView(storyId: String, userId: String) {
+        if (storyId.isBlank() || userId.isBlank()) return
+        try {
+            val docRef = firestore.collection("stories").document(storyId)
+            firestore.runTransaction { transaction ->
+                val snapshot = transaction.get(docRef)
+                val story = snapshot.toObject(com.example.data.firebase.firestore.models.StoryDocument::class.java)
+                if (story != null && !story.viewers.contains(userId)) {
+                    val updatedViewers = story.viewers + userId
+                    transaction.update(docRef, "viewers", updatedViewers)
+                }
+            }.awaitTask()
+        } catch (e: Exception) {
+            Log.w(TAG, "Error recording story view: ${e.message}")
+        }
+    }
 }

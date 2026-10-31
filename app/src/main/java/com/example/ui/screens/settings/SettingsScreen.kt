@@ -329,6 +329,51 @@ fun SettingsScreen(
                 }
             }
 
+            // Voice-Controlled Screen AI (Accessibility) Master Switch
+            item {
+                val isVoiceControlEnabled by chatViewModel.isVoiceControlEnabled.collectAsState()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.RecordVoiceOver,
+                            contentDescription = null,
+                            tint = WhatsAppEmerald
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Voice-Controlled Screen AI", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                        Text(
+                            if (isVoiceControlEnabled) "Active • Screen description TTS & Voice-to-Action commands active" else "Disabled • Accessibility screen narration off",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Switch(
+                        checked = isVoiceControlEnabled,
+                        onCheckedChange = { checked ->
+                            chatViewModel.toggleVoiceControl(checked)
+                        },
+                        colors = SwitchDefaults.colors(checkedThumbColor = WhatsAppEmerald),
+                        modifier = Modifier.testTag("voice_control_ai_switch")
+                    )
+                }
+            }
+
             // AI Assistant Customization (Sahiba AI, Tone, Language)
             item {
                 SettingsItem(

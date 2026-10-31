@@ -430,8 +430,10 @@ fun MessageBubble(
                                             }
                                         }
                                         Spacer(modifier = Modifier.height(6.dp))
+                                        val distKm = remember(message.id) { String.format("%.1f", 0.5 + (message.id.hashCode() % 15) / 10.0) }
+                                        val etaMins = remember(message.id) { (message.id.hashCode() % 10) + 3 }
                                         Text(
-                                            "⏱️ Live ETA: ~12 mins • Updated just now",
+                                            "📍 Distance: $distKm km away • Live ETA: ~$etaMins mins • Updated live",
                                             fontSize = 10.sp,
                                             fontWeight = FontWeight.Medium,
                                             color = WhatsAppEmerald
