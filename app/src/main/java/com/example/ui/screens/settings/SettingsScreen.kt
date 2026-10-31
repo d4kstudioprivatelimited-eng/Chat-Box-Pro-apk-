@@ -260,6 +260,51 @@ fun SettingsScreen(
                 }
             }
 
+            // In-Chat Real-Time Auto Translate Toggle
+            item {
+                val isAutoTranslateEnabled by chatViewModel.isAutoTranslateEnabled.collectAsState()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Translate,
+                            contentDescription = null,
+                            tint = WhatsAppEmerald
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Auto AI Translate", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                        Text(
+                            if (isAutoTranslateEnabled) "Enabled • Auto-translates incoming messages on the fly" else "Disabled",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Switch(
+                        checked = isAutoTranslateEnabled,
+                        onCheckedChange = { checked ->
+                            chatViewModel.toggleAutoTranslate(checked)
+                        },
+                        colors = SwitchDefaults.colors(checkedThumbColor = WhatsAppEmerald),
+                        modifier = Modifier.testTag("auto_translate_switch")
+                    )
+                }
+            }
+
             // Offline APK Self-Extraction & Direct Share
             item {
                 SettingsItem(

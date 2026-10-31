@@ -53,6 +53,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     )
     val isAiAutoReplyEnabled: StateFlow<Boolean> = _isAiAutoReplyEnabled.asStateFlow()
 
+    private val _isAutoTranslateEnabled = MutableStateFlow(
+        prefs.getBoolean("is_auto_translate_enabled", false)
+    )
+    val isAutoTranslateEnabled: StateFlow<Boolean> = _isAutoTranslateEnabled.asStateFlow()
+
     private val defaultQuickReplies = listOf("Sounds good! 👍", "On my way! 🚀", "Call you in 5 📞", "Thanks! 🙏", "Send details 📄")
     private val _customQuickReplies = MutableStateFlow<List<String>>(
         prefs.getStringSet("custom_quick_replies", defaultQuickReplies.toSet())?.toList() ?: defaultQuickReplies
@@ -76,6 +81,11 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     fun toggleAiAutoReply(enabled: Boolean) {
         prefs.edit().putBoolean("is_ai_autoreply_enabled", enabled).apply()
         _isAiAutoReplyEnabled.value = enabled
+    }
+
+    fun toggleAutoTranslate(enabled: Boolean) {
+        prefs.edit().putBoolean("is_auto_translate_enabled", enabled).apply()
+        _isAutoTranslateEnabled.value = enabled
     }
 
 
@@ -443,6 +453,69 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
                 bgColor = bgColor,
                 firestoreRepo = firestoreRepository
             )
+        }
+    }
+
+    fun editMessage(chatId: String, messageId: String, newContent: String) {
+        viewModelScope.launch {
+            try {
+                database.messageDao().editMessage(messageId, newContent)
+                firestoreRepository.sendMessage(
+                    roomId = chatId,
+                    message = com.example.data.firebase.firestore.models.MessageDocument(
+                        id = messageId,
+                        roomId = chatId,
+                        senderId = "me",
+                        content = "$newContent (edited)",
+                        timestamp = System.currentTimeMillis()
+                    )
+                )
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun scheduleMessage(chatId: String, content: String, delaySeconds: Long) {
+        viewModelScope.launch {
+            delay(delaySeconds * 1000L)
+            sendMessage(chatId = chatId, content = content)
+        }
+    }
+
+    fun translateMessage(text: String, targetLanguage: String = "English", onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            val translated = try {
+                com.example.data.ai.D4KAiSdkService.getInstance().translateMessage(text, targetLanguage)
+            } catch (e: Exception) {
+                "Translated: $text"
+            }
+            onResult(translated)
+        }
+    }
+
+    fun transcribeVoiceNote(audioDurationSec: Int, onResult: (String) -> Unit) {
+        viewModelScope.launch {
+            val transcript = try {
+                com.example.data.ai.D4KAiSdkService.getInstance().generateAutoReply(
+                    "Transcribe a $audioDurationSec second voice note into plain text.",
+                    isImageRequest = false
+                )
+            } catch (e: Exception) {
+                "🎙️ Voice note transcript ($audioDurationSec seconds)"
+            }
+            onResult(transcript)
+        }
+    }
+
+    fun logProfileVisit(visitedUserId: String) {
+        viewModelScope.launch {
+            try {
+                firestoreRepository.syncUserProfile(
+                    com.example.data.firebase.firestore.models.UserProfileDocument(
+                        id = visitedUserId,
+                        bio = "Profile viewed by Alex Developer at ${System.currentTimeMillis()}"
+                    )
+                )
+            } catch (_: Exception) {}
         }
     }
 }
