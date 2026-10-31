@@ -50,6 +50,21 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
     )
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
 
+    private val database = com.example.data.local.ChatBoxDatabase.getDatabase(application)
+    private val chatRepository = com.example.data.repository.ChatRepository(database)
+
+    fun isEmailRegistered(email: String): Boolean {
+        val cleanEmail = email.trim().lowercase()
+        if (cleanEmail.isBlank()) return false
+        val savedEmail = prefs.getString("user_email", "")?.trim()?.lowercase()
+        val isProfileDone = prefs.getBoolean("is_profile_done", false)
+        if (cleanEmail == savedEmail && isProfileDone) {
+            return true
+        }
+        val registeredSet = prefs.getStringSet("registered_emails", emptySet()) ?: emptySet()
+        return registeredSet.contains(cleanEmail)
+    }
+
     fun onEmailVerified(email: String) {
         val trimmedEmail = email.trim()
         val token = prefs.getString("session_token", null) ?: UUID.randomUUID().toString()
@@ -61,11 +76,15 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             sessionToken = token
         )
 
+        val registeredSet = (prefs.getStringSet("registered_emails", emptySet()) ?: emptySet()).toMutableSet()
+        registeredSet.add(trimmedEmail.lowercase())
+
         prefs.edit()
             .putString("user_email", trimmedEmail)
             .putString("user_phone", trimmedEmail)
             .putString("session_token", token)
             .putBoolean("is_authenticated", true)
+            .putStringSet("registered_emails", registeredSet)
             .apply()
 
         Log.d(TAG, "Persistent session established for: $trimmedEmail")
@@ -86,6 +105,11 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             isAuthenticated = true
         )
 
+        val registeredSet = (prefs.getStringSet("registered_emails", emptySet()) ?: emptySet()).toMutableSet()
+        if (userEmail.isNotBlank()) {
+            registeredSet.add(userEmail.trim().lowercase())
+        }
+
         prefs.edit()
             .putString("user_name", trimmedName)
             .putString("user_bio", bio)
@@ -93,11 +117,18 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             .putString("user_phone", userPhone)
             .putBoolean("is_profile_done", true)
             .putBoolean("is_authenticated", true)
+            .putStringSet("registered_emails", registeredSet)
             .apply()
 
         Log.d(TAG, "Profile saved locally for $trimmedName ($userEmail, phone: $userPhone)")
 
         viewModelScope.launch {
+            // Trigger Welcome Message in chats list
+            try {
+                chatRepository.insertWelcomeMessageChat(trimmedName, userEmail)
+            } catch (e: Exception) {
+                Log.w(TAG, "Notice creating welcome message: ${e.message}")
+            }
             // Step 3: User uploads Profile DP -> App saves this DP securely using Supabase storage
             val supabaseAvatarUrl = try {
                 if (avatarUrl.isNotBlank()) {

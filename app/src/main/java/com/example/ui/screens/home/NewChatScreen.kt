@@ -34,36 +34,79 @@ fun NewChatScreen(
     onChatSelected: (String) -> Unit
 ) {
     val contacts by chatViewModel.contacts.collectAsState()
+    var isSearching by remember { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf("") }
+    val trimmedQuery = remember(searchQuery) { searchQuery.trim() }
+
     var showNewContactDialog by remember { mutableStateOf(false) }
     var newContactName by remember { mutableStateOf("") }
     var newContactPhone by remember { mutableStateOf("") }
 
-    val registeredContacts = contacts.filter { it.isRegisteredOnChatBox }
-    val otherContacts = contacts.filter { !it.isRegisteredOnChatBox }
+    val filteredContacts = remember(contacts, trimmedQuery) {
+        if (trimmedQuery.isBlank()) contacts
+        else contacts.filter {
+            it.name.contains(trimmedQuery, ignoreCase = true) ||
+            it.phone.contains(trimmedQuery, ignoreCase = true)
+        }
+    }
+
+    val registeredContacts = filteredContacts.filter { it.isRegisteredOnChatBox }
+    val otherContacts = filteredContacts.filter { !it.isRegisteredOnChatBox }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Column {
-                        Text("Select contact", fontWeight = FontWeight.Bold, fontSize = 18.sp)
-                        Text("${contacts.size} contacts", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { showNewContactDialog = true }) {
-                        Icon(Icons.Default.PersonAdd, contentDescription = "Add Contact")
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
+            if (isSearching) {
+                TopAppBar(
+                    title = {
+                        OutlinedTextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = { Text("Search by name, phone or email...") },
+                            singleLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .testTag("select_contact_search_input"),
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            isSearching = false
+                            searchQuery = ""
+                        }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Close search")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
                 )
-            )
+            } else {
+                TopAppBar(
+                    title = {
+                        Column {
+                            Text("Select contact", fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                            Text("${contacts.size} contacts", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBack) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { isSearching = true }) {
+                            Icon(Icons.Default.Search, contentDescription = "Search Contacts")
+                        }
+                        IconButton(onClick = { showNewContactDialog = true }) {
+                            Icon(Icons.Default.PersonAdd, contentDescription = "Add Contact")
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                )
+            }
         }
     ) { padding ->
         LazyColumn(
@@ -72,6 +115,55 @@ fun NewChatScreen(
                 .padding(padding)
                 .testTag("select_contact_column")
         ) {
+            if (trimmedQuery.isNotBlank()) {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 8.dp)
+                            .clickable {
+                                chatViewModel.createChat(
+                                    name = trimmedQuery,
+                                    phone = trimmedQuery,
+                                    avatar = "",
+                                    onCreated = onChatSelected
+                                )
+                            }
+                            .testTag("direct_email_phone_search_card"),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(containerColor = WhatsAppEmerald.copy(alpha = 0.12f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(44.dp)
+                                    .clip(CircleShape)
+                                    .background(WhatsAppEmerald),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(Icons.Default.PersonSearch, contentDescription = null, tint = Color.White)
+                            }
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Start chat with \"$trimmedQuery\"",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp
+                                )
+                                Text(
+                                    text = "Tap to search & open chat by full email or mobile number",
+                                    fontSize = 12.sp,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = WhatsAppEmerald)
+                        }
+                    }
+                }
+            }
             // New Group Action
             item {
                 Row(

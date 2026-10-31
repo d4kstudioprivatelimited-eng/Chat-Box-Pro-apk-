@@ -265,7 +265,7 @@ fun SettingsScreen(
                 SettingsItem(
                     icon = Icons.Default.Share,
                     title = "Share App & Export APK",
-                    subtitle = "Extract ChatBoxPro.apk offline to Downloads • Share via Bluetooth or WhatsApp",
+                    subtitle = "Extract ChatBoxPro.apk offline to Downloads • Share via Bluetooth or Messaging Apps",
                     onClick = { showOfflineShareDialog = true }
                 )
             }

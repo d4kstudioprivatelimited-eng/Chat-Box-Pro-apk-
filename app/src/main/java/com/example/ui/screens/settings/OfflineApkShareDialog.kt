@@ -258,7 +258,7 @@ fun OfflineApkShareDialog(
                     ) {
                         Icon(Icons.Default.Share, contentDescription = null, modifier = Modifier.size(20.dp))
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Share via WhatsApp / Bluetooth", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                        Text("Share via Messaging / Bluetooth", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                     }
 
                     Spacer(modifier = Modifier.height(10.dp))

@@ -217,6 +217,38 @@ class ChatRepository(private val database: ChatBoxDatabase) {
         chatDao.clearUnread(chatId)
     }
 
+    suspend fun insertWelcomeMessageChat(userName: String, userEmail: String) {
+        val systemChatId = "welcome_chatbox_official"
+        val existing = chatDao.getChatById(systemChatId)
+        val now = System.currentTimeMillis()
+        val welcomeChat = ChatEntity(
+            id = systemChatId,
+            name = "Chat Box Pro Team 🛡️",
+            phone = "Official Support",
+            avatarUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200",
+            isGroup = false,
+            unreadCount = 1,
+            lastMessageText = "Welcome to Chat Box Pro, $userName! Your account is active and end-to-end encrypted.",
+            lastMessageTimestamp = now,
+            presence = "Official Account",
+            publicKey = "CHTBX-E2EE-OFFICIAL-2026"
+        )
+        chatDao.insertChat(welcomeChat)
+
+        val welcomeMsg = MessageEntity(
+            id = java.util.UUID.randomUUID().toString(),
+            chatId = systemChatId,
+            senderId = systemChatId,
+            senderName = "Chat Box Pro Team",
+            content = "🎉 Welcome to Chat Box Pro, $userName!\n\nYour account ($userEmail) has been successfully activated with End-to-End Encryption (E2EE).\n\nKey features ready for you:\n• Real-Time End-to-End Encrypted Messaging\n• 8-Item Rich Media Attachment Drawer\n• Voice & Video VoIP Calling & Recording\n• Secure Chat Vault & Biometric Lock\n• Custom Dynamic Theme Builder & Quick Replies\n\nEnjoy seamless and private communication!",
+            mediaType = "TEXT",
+            timestamp = now,
+            status = "READ",
+            isEncrypted = true
+        )
+        messageDao.insertMessage(welcomeMsg)
+    }
+
     suspend fun createNewChat(name: String, phone: String, avatar: String): String {
         val id = "chat_${UUID.randomUUID().toString().take(8)}"
         val chat = ChatEntity(

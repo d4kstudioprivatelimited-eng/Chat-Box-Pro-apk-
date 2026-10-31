@@ -79,7 +79,7 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     }
 
 
-    // Chats filtered by search query with strict anti-scraping rule
+    // Chats filtered by search query
     val chats: StateFlow<List<ChatEntity>> = combine(
         repository.allChats,
         _searchQuery
@@ -88,16 +88,10 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         if (trimmed.isBlank()) {
             chatList
         } else {
-            val isExactEmail = android.util.Patterns.EMAIL_ADDRESS.matcher(trimmed).matches()
-            val isExactPhone = trimmed.replace(Regex("[^0-9+]"), "").length >= 10
-            if (isExactEmail || isExactPhone) {
-                chatList.filter {
-                    it.name.contains(trimmed, ignoreCase = true) ||
-                    it.phone.contains(trimmed, ignoreCase = true) ||
-                    it.lastMessageText.contains(trimmed, ignoreCase = true)
-                }
-            } else {
-                emptyList() // Ignore partial inputs strictly to prevent data scraping
+            chatList.filter {
+                it.name.contains(trimmed, ignoreCase = true) ||
+                it.phone.contains(trimmed, ignoreCase = true) ||
+                it.lastMessageText.contains(trimmed, ignoreCase = true)
             }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())

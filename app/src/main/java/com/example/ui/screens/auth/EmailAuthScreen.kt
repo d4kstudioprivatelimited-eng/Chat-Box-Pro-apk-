@@ -229,14 +229,20 @@ fun EmailAuthScreen(
                     Text(it, color = MaterialTheme.colorScheme.error, fontSize = 13.sp, textAlign = TextAlign.Center)
                 }
 
+                val isExistingUser = remember(state.email) {
+                    if (state.email.contains("@")) {
+                        authViewModel?.isEmailRegistered(state.email) ?: false
+                    } else false
+                }
+
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Official Verified Security Badge
+                // Official Verified Security Badge or Account Found Badge
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(12.dp),
                     colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                        containerColor = if (isExistingUser) Color(0xFF064E3B).copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
                     )
                 ) {
                     Row(
@@ -244,7 +250,7 @@ fun EmailAuthScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            Icons.Default.VerifiedUser,
+                            if (isExistingUser) Icons.Default.Lock else Icons.Default.VerifiedUser,
                             contentDescription = null,
                             tint = WhatsAppEmerald,
                             modifier = Modifier.size(22.dp)
@@ -252,13 +258,13 @@ fun EmailAuthScreen(
                         Spacer(modifier = Modifier.width(10.dp))
                         Column {
                             Text(
-                                text = "Official Verified Security",
+                                text = if (isExistingUser) "Existing Account Registered 🔒" else "Official Verified Security",
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onSurface
                             )
                             Text(
-                                text = "Secure Auth Service • D 4K Studio Private Limited",
+                                text = if (isExistingUser) "One Email, One Account • Sign in directly to your inbox" else "Secure Auth Service • D 4K Studio Private Limited",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -271,7 +277,12 @@ fun EmailAuthScreen(
                 Button(
                     onClick = {
                         focusManager.clearFocus()
-                        emailAuthViewModel.sendVerificationEmail()
+                        if (isExistingUser) {
+                            authViewModel?.onEmailVerified(state.email)
+                            onAuthSuccess()
+                        } else {
+                            emailAuthViewModel.sendVerificationEmail()
+                        }
                     },
                     enabled = !state.isLoading && state.email.contains("@"),
                     modifier = Modifier
@@ -284,7 +295,11 @@ fun EmailAuthScreen(
                     if (state.isLoading) {
                         CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
                     } else {
-                        Text("Send Verification Code", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                        Text(
+                            text = if (isExistingUser) "Sign In to Existing Account" else "Send Verification Code",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
                     }
                 }
             } else {

@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.data.local.entities.ChatEntity
+import com.example.data.local.entities.ContactEntity
 import com.example.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -30,87 +31,225 @@ import java.util.*
 @Composable
 fun ChatListTab(
     chats: List<ChatEntity>,
+    searchQuery: String = "",
+    contacts: List<ContactEntity> = emptyList(),
     onChatClick: (String) -> Unit,
-    onE2eeBannerClick: () -> Unit
+    onE2eeBannerClick: () -> Unit,
+    onStartNewSearchChat: (String) -> Unit = {}
 ) {
+    val trimmedQuery = remember(searchQuery) { searchQuery.trim() }
+    val isSearching = trimmedQuery.isNotEmpty()
+
+    val matchedContacts = remember(trimmedQuery, contacts, chats) {
+        if (!isSearching) emptyList()
+        else {
+            val existingPhones = chats.map { it.phone }.toSet()
+            contacts.filter { contact ->
+                (contact.name.contains(trimmedQuery, ignoreCase = true) ||
+                 contact.phone.contains(trimmedQuery, ignoreCase = true)) &&
+                !existingPhones.contains(contact.phone)
+            }
+        }
+    }
+
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .testTag("chat_list_column"),
         contentPadding = PaddingValues(bottom = 80.dp)
     ) {
-        // WhatsApp E2EE Security Top Banner
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                    .clickable { onE2eeBannerClick() }
-                    .testTag("e2ee_security_banner"),
-                shape = RoundedCornerShape(10.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+        if (!isSearching) {
+            // WhatsApp E2EE Security Top Banner
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .clickable { onE2eeBannerClick() }
+                        .testTag("e2ee_security_banner"),
+                    shape = RoundedCornerShape(10.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Lock,
+                            contentDescription = "E2EE Lock",
+                            tint = WhatsAppEmerald,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Text(
+                            text = "Your personal messages and calls are end-to-end encrypted. Tap to learn more.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 16.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            }
+
+            // Chat Folders / Filter Tabs
+            item {
+                var selectedFilter by remember { mutableStateOf("All") }
+                val filterOptions = listOf("All", "Unread", "Personal", "Groups")
+
+                ScrollableTabRow(
+                    selectedTabIndex = filterOptions.indexOf(selectedFilter).coerceAtLeast(0),
+                    edgePadding = 16.dp,
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    divider = {},
+                    indicator = {}
+                ) {
+                    filterOptions.forEach { filter ->
+                        val isSelected = selectedFilter == filter
+                        FilterChip(
+                            selected = isSelected,
+                            onClick = { selectedFilter = filter },
+                            label = {
+                                Text(
+                                    filter,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                                )
+                            },
+                            modifier = Modifier
+                                .padding(end = 8.dp, top = 4.dp, bottom = 4.dp)
+                                .testTag("chat_filter_$filter"),
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = WhatsAppEmerald.copy(alpha = 0.2f),
+                                selectedLabelColor = WhatsAppEmerald
+                            )
+                        )
+                    }
+                }
+            }
+        } else {
+            // Search Active Header
+            item {
+                Text(
+                    text = "Search results for \"$trimmedQuery\"",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = WhatsAppEmerald,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
                 )
-            ) {
+            }
+
+            // Direct Search Result Card for full email / mobile number
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                        .clickable { onStartNewSearchChat(trimmedQuery) }
+                        .testTag("direct_search_user_result_card"),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = CardDefaults.cardColors(containerColor = WhatsAppEmerald.copy(alpha = 0.12f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(14.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(44.dp)
+                                .clip(CircleShape)
+                                .background(WhatsAppEmerald),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.PersonSearch, contentDescription = null, tint = Color.White)
+                        }
+                        Spacer(modifier = Modifier.width(14.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Start Chat with \"$trimmedQuery\"",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 15.sp,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "Tap to launch instant chat by email or phone number",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(Icons.Default.ChevronRight, contentDescription = null, tint = WhatsAppEmerald)
+                    }
+                }
+            }
+        }
+
+        // Existing Chats items
+        items(chats, key = { it.id }) { chat ->
+            ChatItemRow(chat = chat, onClick = { onChatClick(chat.id) })
+            Divider(
+                modifier = Modifier.padding(start = 76.dp, end = 16.dp),
+                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                thickness = 0.6.dp
+            )
+        }
+
+        // Matched contacts items (if searching)
+        if (isSearching && matchedContacts.isNotEmpty()) {
+            item {
+                Text(
+                    text = "Contacts matching \"$trimmedQuery\"",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 13.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+
+            items(matchedContacts, key = { it.id }) { contact ->
                 Row(
-                    modifier = Modifier.padding(12.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onStartNewSearchChat(contact.phone.ifEmpty { contact.name }) }
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        Icons.Default.Lock,
-                        contentDescription = "E2EE Lock",
-                        tint = WhatsAppEmerald,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Text(
-                        text = "Your personal messages and calls are end-to-end encrypted. Tap to learn more.",
-                        fontSize = 12.sp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        lineHeight = 16.sp,
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-            }
-        }
-
-        // Chat Folders / Filter Tabs
-        item {
-            var selectedFilter by remember { mutableStateOf("All") }
-            val filterOptions = listOf("All", "Unread", "Personal", "Groups")
-
-            ScrollableTabRow(
-                selectedTabIndex = filterOptions.indexOf(selectedFilter).coerceAtLeast(0),
-                edgePadding = 16.dp,
-                containerColor = MaterialTheme.colorScheme.surface,
-                divider = {},
-                indicator = {}
-            ) {
-                filterOptions.forEach { filter ->
-                    val isSelected = selectedFilter == filter
-                    FilterChip(
-                        selected = isSelected,
-                        onClick = { selectedFilter = filter },
-                        label = {
-                            Text(
-                                filter,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
-                            )
-                        },
-                        modifier = Modifier
-                            .padding(end = 8.dp, top = 4.dp, bottom = 4.dp)
-                            .testTag("chat_filter_$filter"),
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = WhatsAppEmerald.copy(alpha = 0.2f),
-                            selectedLabelColor = WhatsAppEmerald
+                    if (contact.avatar.isNotEmpty()) {
+                        AsyncImage(
+                            model = contact.avatar,
+                            contentDescription = contact.name,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(46.dp)
+                                .clip(CircleShape)
                         )
-                    )
+                    } else {
+                        Box(
+                            modifier = Modifier
+                                .size(46.dp)
+                                .clip(CircleShape)
+                                .background(WhatsAppEmerald),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(Icons.Default.Person, contentDescription = null, tint = Color.White)
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(14.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(contact.name, fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                        Text(contact.phone, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
                 }
+                Divider(
+                    modifier = Modifier.padding(start = 76.dp, end = 16.dp),
+                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
+                    thickness = 0.6.dp
+                )
             }
         }
 
-        // Empty state
-        if (chats.isEmpty()) {
+        // Empty state when no chats and not searching
+        if (!isSearching && chats.isEmpty()) {
             item {
                 Box(
                     modifier = Modifier
@@ -141,15 +280,6 @@ fun ChatListTab(
                     }
                 }
             }
-        }
-
-        items(chats, key = { it.id }) { chat ->
-            ChatItemRow(chat = chat, onClick = { onChatClick(chat.id) })
-            Divider(
-                modifier = Modifier.padding(start = 76.dp, end = 16.dp),
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
-                thickness = 0.6.dp
-            )
         }
     }
 }

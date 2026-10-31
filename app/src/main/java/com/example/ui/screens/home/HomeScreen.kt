@@ -46,6 +46,7 @@ fun HomeScreen(
     var menuExpanded by remember { mutableStateOf(false) }
 
     val chats by chatViewModel.chats.collectAsState()
+    val contacts by chatViewModel.contacts.collectAsState()
     val stories by chatViewModel.stories.collectAsState()
     val calls by chatViewModel.calls.collectAsState()
     val searchQuery by chatViewModel.searchQuery.collectAsState()
@@ -183,7 +184,7 @@ fun HomeScreen(
                                         }
                                     )
                                      DropdownMenuItem(
-                                        text = { Text("Linked devices (WhatsApp Web)") },
+                                        text = { Text("Linked devices (Web Companion)") },
                                         leadingIcon = { Icon(Icons.Default.QrCodeScanner, contentDescription = null, tint = WhatsAppEmerald) },
                                         onClick = {
                                             menuExpanded = false
@@ -413,8 +414,18 @@ fun HomeScreen(
             when (selectedTabIndex) {
                 0 -> ChatListTab(
                     chats = chats,
+                    searchQuery = searchQuery,
+                    contacts = contacts,
                     onChatClick = onNavigateToChat,
-                    onE2eeBannerClick = onNavigateToE2eeInfo
+                    onE2eeBannerClick = onNavigateToE2eeInfo,
+                    onStartNewSearchChat = { query ->
+                        chatViewModel.createChat(
+                            name = query,
+                            phone = query,
+                            avatar = "",
+                            onCreated = onNavigateToChat
+                        )
+                    }
                 )
                 1 -> StatusTab(
                     stories = stories,

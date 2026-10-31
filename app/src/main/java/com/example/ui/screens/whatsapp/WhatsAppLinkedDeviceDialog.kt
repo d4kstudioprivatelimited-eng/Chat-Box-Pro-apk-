@@ -70,7 +70,7 @@ fun WhatsAppLinkedDeviceDialog(
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        "WhatsApp Web Protocol (Free)",
+                        "Web Companion Protocol (Free)",
                         color = WhatsAppEmerald,
                         fontWeight = FontWeight.Bold,
                         fontSize = 13.sp
@@ -87,7 +87,7 @@ fun WhatsAppLinkedDeviceDialog(
                 )
 
                 Text(
-                    "Connect natively without Meta Cloud API fees using whatsapp-web protocol bridge.",
+                    "Connect natively using secure web companion protocol bridge.",
                     fontSize = 12.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -113,11 +113,9 @@ fun WhatsAppLinkedDeviceDialog(
                                 val gridCount = 15
                                 val cellSize = size.width / gridCount
 
-                                // Draw simulated QR Finder patterns at corners
                                 val darkColor = Color.Black
                                 val lightColor = Color.White
 
-                                // Outer background
                                 drawRect(lightColor)
 
                                 for (r in 0 until gridCount) {
@@ -142,7 +140,6 @@ fun WhatsAppLinkedDeviceDialog(
                                                 )
                                             }
                                         } else {
-                                            // Random data cells based on token seed
                                             val hash = (r * 31 + c * 17 + qrToken.hashCode()).hashCode()
                                             if (hash % 3 == 0) {
                                                 drawRect(
@@ -172,7 +169,7 @@ fun WhatsAppLinkedDeviceDialog(
 
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                "Scan with Official WhatsApp -> Linked Devices",
+                                "Scan with Companion App -> Linked Devices",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -208,8 +205,8 @@ fun WhatsAppLinkedDeviceDialog(
                         ) {
                             CircularProgressIndicator(color = WhatsAppEmerald, modifier = Modifier.size(44.dp))
                             Spacer(modifier = Modifier.height(16.dp))
-                            Text("Authenticating WhatsApp Session key...", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                            Text("Connecting via Baileys/whatsapp-web protocol...", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text("Authenticating Web Session key...", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                            Text("Connecting via secure protocol bridge...", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                     }
 
@@ -225,7 +222,7 @@ fun WhatsAppLinkedDeviceDialog(
                                 Icon(Icons.Default.CheckCircle, contentDescription = null, tint = WhatsAppEmerald)
                                 Spacer(modifier = Modifier.width(8.dp))
                                 Column {
-                                    Text("WhatsApp Protocol Connected", fontWeight = FontWeight.Bold, color = WhatsAppEmerald, fontSize = 14.sp)
+                                    Text("Web Protocol Connected", fontWeight = FontWeight.Bold, color = WhatsAppEmerald, fontSize = 14.sp)
                                     Text("Active Account: $linkedAccountPhone", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
                                 }
                             }
@@ -234,7 +231,7 @@ fun WhatsAppLinkedDeviceDialog(
                         Spacer(modifier = Modifier.height(16.dp))
 
                         Text(
-                            "Start Native Chat with WhatsApp Number:",
+                            "Start Native Chat with Phone Number:",
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 13.sp,
                             modifier = Modifier.align(Alignment.Start)
@@ -259,7 +256,7 @@ fun WhatsAppLinkedDeviceDialog(
                         Button(
                             onClick = {
                                 if (targetPhone.isNotBlank()) {
-                                    onStartWhatsAppChat("WhatsApp Contact", targetPhone.trim())
+                                    onStartWhatsAppChat("Direct Contact", targetPhone.trim())
                                     onDismiss()
                                 }
                             },

@@ -197,13 +197,30 @@ fun ProfileSetupScreen(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Mobile Number Field (Required for contact searching)
+            // Mobile Number Field (Strictly Required for contact searching)
             var phoneNumber by remember { mutableStateOf(state.phoneNumber) }
+            val cleanDigits = remember(phoneNumber) { phoneNumber.trim().replace(Regex("[^0-9+]"), "") }
+            val isPhoneValid = cleanDigits.length >= 10
+            var showError by remember { mutableStateOf(false) }
+
             OutlinedTextField(
                 value = phoneNumber,
-                onValueChange = { phoneNumber = it },
-                label = { Text("Mobile Number (for contact search)") },
+                onValueChange = { 
+                    phoneNumber = it 
+                    if (showError && it.trim().replace(Regex("[^0-9+]"), "").length >= 10) {
+                        showError = false
+                    }
+                },
+                label = { Text("Mobile Number (Strictly Required)") },
                 placeholder = { Text("e.g. +91 9430320021") },
+                isError = showError || (phoneNumber.isNotEmpty() && !isPhoneValid),
+                supportingText = {
+                    if (showError || (phoneNumber.isNotEmpty() && !isPhoneValid)) {
+                        Text("A valid mobile number (min 10 digits) is strictly required.", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                    } else {
+                        Text("Required for user search & contact verification", color = WhatsAppEmerald, fontSize = 12.sp)
+                    }
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .testTag("phone_number_input"),
@@ -248,6 +265,10 @@ fun ProfileSetupScreen(
 
             Button(
                 onClick = {
+                    if (!isPhoneValid) {
+                        showError = true
+                        return@Button
+                    }
                     authViewModel.saveProfile(
                         name = name.ifEmpty { "Alex Developer" },
                         bio = bio,
@@ -256,6 +277,7 @@ fun ProfileSetupScreen(
                     )
                     onComplete()
                 },
+                enabled = isPhoneValid && name.isNotBlank(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)
