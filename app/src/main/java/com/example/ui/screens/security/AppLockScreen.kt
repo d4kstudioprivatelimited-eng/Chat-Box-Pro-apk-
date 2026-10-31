@@ -32,6 +32,19 @@ fun AppLockScreen(
     var isError by remember { mutableStateOf(false) }
 
     val shakeOffset = remember { Animatable(0f) }
+    val context = androidx.compose.ui.platform.LocalContext.current as MainActivity
+LaunchedEffect(Unit) {
+    context.showBiometricPrompt(
+        activity = context,
+        onSuccess = { 
+            // یہاں کامیابی پر انلاک کرنے کا کوڈ آئے گا
+        },
+        onError = { errorMsg -> 
+            // یہاں ایرر کو ہینڈل کریں
+        }
+    )
+}
+
 
     LaunchedEffect(isError) {
         if (isError) {
