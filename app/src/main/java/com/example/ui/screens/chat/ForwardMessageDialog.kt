@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Forward
 import androidx.compose.material.icons.filled.Groups
@@ -50,7 +51,7 @@ fun ForwardMessageDialog(
                 .padding(bottom = 32.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Forward, contentDescription = null, tint = WhatsAppEmerald)
+                Icon(Icons.AutoMirrored.Filled.Forward, contentDescription = null, tint = WhatsAppEmerald)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text("Forward to...", fontWeight = FontWeight.Bold, fontSize = 18.sp)
             }

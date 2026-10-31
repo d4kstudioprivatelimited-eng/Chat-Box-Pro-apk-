@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Send
@@ -127,7 +128,7 @@ fun LiveVoiceRecordingBar(
                     .background(WhatsAppEmerald)
                     .testTag("send_voice_note_btn")
             ) {
-                Icon(Icons.Default.Send, contentDescription = "Send voice note", tint = Color.White, modifier = Modifier.size(22.dp))
+                Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send voice note", tint = Color.White, modifier = Modifier.size(22.dp))
             }
         }
     }

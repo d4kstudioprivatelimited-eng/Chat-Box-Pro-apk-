@@ -187,7 +187,7 @@ fun ChatListTab(
         // Existing Chats items
         items(chats, key = { it.id }) { chat ->
             ChatItemRow(chat = chat, onClick = { onChatClick(chat.id) })
-            Divider(
+            HorizontalDivider(
                 modifier = Modifier.padding(start = 76.dp, end = 16.dp),
                 color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                 thickness = 0.6.dp
@@ -240,7 +240,7 @@ fun ChatListTab(
                         Text(contact.phone, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                Divider(
+                HorizontalDivider(
                     modifier = Modifier.padding(start = 76.dp, end = 16.dp),
                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f),
                     thickness = 0.6.dp

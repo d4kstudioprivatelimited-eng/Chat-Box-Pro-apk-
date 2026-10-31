@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -267,7 +268,7 @@ fun WhatsAppLinkedDeviceDialog(
                             colors = ButtonDefaults.buttonColors(containerColor = WhatsAppEmerald),
                             shape = RoundedCornerShape(12.dp)
                         ) {
-                            Icon(Icons.Default.Chat, contentDescription = null)
+                            Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
                             Text("Start Native Chat")
                         }

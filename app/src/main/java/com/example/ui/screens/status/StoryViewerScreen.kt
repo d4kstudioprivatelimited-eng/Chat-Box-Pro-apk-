@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.*
@@ -245,7 +246,7 @@ fun StoryViewerScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(
-                imageVector = Icons.Default.Send,
+                imageVector = Icons.AutoMirrored.Filled.Send,
                 contentDescription = null,
                 tint = Color.White.copy(alpha = 0.8f),
                 modifier = Modifier.size(16.dp)
@@ -332,7 +333,7 @@ fun StoryViewerScreen(
                             .background(WhatsAppEmerald)
                             .testTag("story_send_reply_btn")
                     ) {
-                        Icon(Icons.Default.Send, contentDescription = "Send Reply", tint = Color.White, modifier = Modifier.size(18.dp))
+                        Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send Reply", tint = Color.White, modifier = Modifier.size(18.dp))
                     }
                 }
             }

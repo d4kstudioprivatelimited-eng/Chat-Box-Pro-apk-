@@ -208,7 +208,7 @@ fun NewChatScreen(
                     Text("New contact", fontWeight = FontWeight.SemiBold, fontSize = 16.sp)
                 }
 
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                 Text(
                     "Contacts on Chat Box Pro",

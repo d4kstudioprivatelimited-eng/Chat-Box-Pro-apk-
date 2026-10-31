@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -191,7 +191,7 @@ fun ChatDetailScreen(
                             )
                             DropdownMenuItem(
                                 text = { Text("Mute notifications") },
-                                leadingIcon = { Icon(Icons.Default.VolumeOff, contentDescription = null) },
+                                leadingIcon = { Icon(Icons.AutoMirrored.Filled.VolumeOff, contentDescription = null) },
                                 onClick = { menuExpanded = false }
                             )
                         }
@@ -467,7 +467,7 @@ fun ChatDetailScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Icon(
-                                imageVector = if (inputText.isNotBlank()) Icons.Default.Send else Icons.Default.Mic,
+                                imageVector = if (inputText.isNotBlank()) Icons.AutoMirrored.Filled.Send else Icons.Default.Mic,
                                 contentDescription = if (inputText.isNotBlank()) "Send" else "Record voice message",
                                 tint = Color.White,
                                 modifier = Modifier.size(22.dp)
