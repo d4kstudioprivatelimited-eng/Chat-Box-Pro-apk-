@@ -441,12 +441,43 @@ fun MessageBubble(
                             }
 
                             else -> {
-                                Text(
-                                    text = message.content,
-                                    fontSize = 15.sp,
-                                    lineHeight = 20.sp,
-                                    color = textColor
-                                )
+                                val context = androidx.compose.ui.platform.LocalContext.current
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = message.content,
+                                        fontSize = 15.sp,
+                                        lineHeight = 20.sp,
+                                        color = textColor,
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                    if (!isMe && message.content.isNotBlank()) {
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        IconButton(
+                                            onClick = {
+                                                try {
+                                                    val ttsHolder = arrayOf<android.speech.tts.TextToSpeech?>(null)
+                                                    ttsHolder[0] = android.speech.tts.TextToSpeech(context) { status ->
+                                                        if (status == android.speech.tts.TextToSpeech.SUCCESS) {
+                                                            ttsHolder[0]?.language = java.util.Locale.US
+                                                            ttsHolder[0]?.speak(message.content, android.speech.tts.TextToSpeech.QUEUE_FLUSH, null, "msg_tts_${message.id}")
+                                                        }
+                                                    }
+                                                } catch (_: Exception) {}
+                                            },
+                                            modifier = Modifier.size(24.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.VolumeUp,
+                                                contentDescription = "Read aloud (Text to Speech)",
+                                                tint = WhatsAppEmerald,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
 

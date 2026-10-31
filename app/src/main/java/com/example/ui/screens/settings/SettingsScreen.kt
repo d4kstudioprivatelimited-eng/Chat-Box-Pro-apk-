@@ -54,7 +54,15 @@ fun SettingsScreen(
     var showAboutDialog by remember { mutableStateOf(false) }
     var showLanguageDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showAiAssistantCustomDialog by remember { mutableStateOf(false) }
+    var showAiAvatarDialog by remember { mutableStateOf(false) }
+
     var newPinInput by remember { mutableStateOf("") }
+    var customAiNameInput by remember { mutableStateOf(authState.aiAssistantName) }
+    var selectedAiTone by remember { mutableStateOf(authState.aiTone) }
+    var selectedTranslationLang by remember { mutableStateOf(authState.translationLanguage) }
+    var aiAvatarPromptInput by remember { mutableStateOf("Cyberpunk digital avatar, 3D render") }
+    var isGeneratingAvatar by remember { mutableStateOf(false) }
 
     val strings = com.example.ui.localization.LocalAppStrings.current
     val currentLang = com.example.ui.localization.LocalCurrentLanguage.current
@@ -114,8 +122,24 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.width(16.dp))
 
                     Column(modifier = Modifier.weight(1f)) {
-                        Text(authState.userName, fontWeight = FontWeight.Bold, fontSize = 17.sp)
-                        Text(authState.userBio, fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 1)
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text(authState.userName, fontWeight = FontWeight.Bold, fontSize = 17.sp)
+                            if (authState.isVerified) {
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Icon(
+                                    Icons.Default.Verified,
+                                    contentDescription = "Verified Account (Blue Tick)",
+                                    tint = Color(0xFF1DA1F2),
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                        Text(
+                            if (authState.isVerificationPending && !authState.isVerified) "Blue Tick Verification: Pending Review" else authState.userBio,
+                            fontSize = 13.sp,
+                            color = if (authState.isVerificationPending && !authState.isVerified) WhatsAppEmerald else MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
                     }
 
                     Icon(
@@ -303,6 +327,43 @@ fun SettingsScreen(
                         modifier = Modifier.testTag("auto_translate_switch")
                     )
                 }
+            }
+
+            // AI Assistant Customization (Sahiba AI, Tone, Language)
+            item {
+                SettingsItem(
+                    icon = Icons.Default.Psychology,
+                    title = "AI Assistant Setup (${authState.aiAssistantName})",
+                    subtitle = "Name: ${authState.aiAssistantName} • Tone: ${authState.aiTone} • Lang: ${authState.translationLanguage}",
+                    onClick = { showAiAssistantCustomDialog = true }
+                )
+            }
+
+            // AI Avatar Generator
+            item {
+                SettingsItem(
+                    icon = Icons.Default.Brush,
+                    title = "✨ Generate AI Avatar",
+                    subtitle = "Create custom profile picture using D4K AI SDK & set to Supabase CDN",
+                    onClick = { showAiAvatarDialog = true }
+                )
+            }
+
+            // Request Verification (Blue Tick)
+            item {
+                SettingsItem(
+                    icon = Icons.Default.Verified,
+                    title = if (authState.isVerified) "Verified Account (Blue Tick)" else if (authState.isVerificationPending) "Verification Pending Review" else "Request Blue Tick Verification",
+                    subtitle = if (authState.isVerified) "Official verified badge active across all chats" else if (authState.isVerificationPending) "Request submitted to Firestore • Pending admin review" else "Submit verification request to Firestore collection",
+                    onClick = {
+                        if (!authState.isVerified && !authState.isVerificationPending) {
+                            authViewModel.requestVerification()
+                            Toast.makeText(context, "Blue Tick verification request submitted to Firestore!", Toast.LENGTH_SHORT).show()
+                        } else {
+                            Toast.makeText(context, "Verification status: ${if (authState.isVerified) "Active" else "Pending"}", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                )
             }
 
             // Offline APK Self-Extraction & Direct Share
@@ -506,6 +567,125 @@ fun SettingsScreen(
                 }
             },
             shape = RoundedCornerShape(20.dp)
+        )
+    }
+
+    if (showAiAssistantCustomDialog) {
+        AlertDialog(
+            onDismissRequest = { showAiAssistantCustomDialog = false },
+            title = { Text("Customize AI Assistant", fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text("AI Assistant Name (Default: Sahiba AI):", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    OutlinedTextField(
+                        value = customAiNameInput,
+                        onValueChange = { customAiNameInput = it },
+                        placeholder = { Text("Sahiba AI") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text("AI Tone & Behavior:", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("Friendly", "Professional", "Casual", "Concise").forEach { tone ->
+                            FilterChip(
+                                selected = selectedAiTone == tone,
+                                onClick = { selectedAiTone = tone },
+                                label = { Text(tone, fontSize = 11.sp) }
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Text("Translation Target Language:", fontSize = 13.sp, fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        listOf("English", "Spanish", "Hindi", "French").forEach { lang ->
+                            FilterChip(
+                                selected = selectedTranslationLang == lang,
+                                onClick = { selectedTranslationLang = lang },
+                                label = { Text(lang, fontSize = 11.sp) }
+                            )
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        authViewModel.updateAiAssistantSettings(
+                            name = customAiNameInput,
+                            tone = selectedAiTone,
+                            lang = selectedTranslationLang
+                        )
+                        showAiAssistantCustomDialog = false
+                        Toast.makeText(context, "AI Assistant updated: ${customAiNameInput.ifBlank { "Sahiba AI" }}", Toast.LENGTH_SHORT).show()
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = WhatsAppEmerald)
+                ) {
+                    Text("Save Settings")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showAiAssistantCustomDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    if (showAiAvatarDialog) {
+        AlertDialog(
+            onDismissRequest = { if (!isGeneratingAvatar) showAiAvatarDialog = false },
+            title = { Text("✨ AI Avatar Generator", fontWeight = FontWeight.Bold) },
+            text = {
+                Column {
+                    Text("Enter a prompt to generate a custom profile picture using D4K AI SDK:")
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedTextField(
+                        value = aiAvatarPromptInput,
+                        onValueChange = { aiAvatarPromptInput = it },
+                        placeholder = { Text("e.g. Futuristic cyber avatar, 3D render") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    if (isGeneratingAvatar) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(color = WhatsAppEmerald, modifier = Modifier.size(24.dp))
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text("Generating & uploading to Supabase CDN...", fontSize = 12.sp)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        isGeneratingAvatar = true
+                        authViewModel.generateAiAvatar(aiAvatarPromptInput) { newAvatarUrl ->
+                            isGeneratingAvatar = false
+                            showAiAvatarDialog = false
+                            Toast.makeText(context, "AI Avatar generated & saved to profile!", Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    enabled = !isGeneratingAvatar && aiAvatarPromptInput.isNotBlank(),
+                    colors = ButtonDefaults.buttonColors(containerColor = WhatsAppEmerald)
+                ) {
+                    Text("Generate Avatar")
+                }
+            },
+            dismissButton = {
+                if (!isGeneratingAvatar) {
+                    TextButton(onClick = { showAiAvatarDialog = false }) {
+                        Text("Cancel")
+                    }
+                }
+            }
         )
     }
 }

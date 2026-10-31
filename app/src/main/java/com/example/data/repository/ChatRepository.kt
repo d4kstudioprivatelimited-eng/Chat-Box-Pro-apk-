@@ -168,13 +168,14 @@ class ChatRepository(private val database: ChatBoxDatabase) {
                 delay(600)
                 chatDao.updatePresence(chatId, "AI Reply")
 
-                val aiReplyText = try {
+                val assistantName = "Sahiba AI"
+                val rawReply = try {
                     com.example.data.ai.D4KAiSdkService.getInstance().generateAutoReply(content)
                 } catch (e: Exception) {
                     generateSimulatedReply(chat.name, content, mediaType)
                 }
-                
-                val aiReplyContent = if (aiReplyText.startsWith("🤖")) aiReplyText else "🤖 $aiReplyText"
+
+                val aiReplyContent = "🤖 $rawReply\n\n— Reply by $assistantName"
                 val replyMessage = MessageEntity(
                     id = UUID.randomUUID().toString(),
                     chatId = chatId,

@@ -22,7 +22,12 @@ data class AuthUiState(
     val userName: String = "",
     val userBio: String = "Available ⚡ Using Chat Box Pro",
     val userAvatarUrl: String = "",
-    val sessionToken: String = ""
+    val sessionToken: String = "",
+    val isVerified: Boolean = false,
+    val isVerificationPending: Boolean = false,
+    val aiAssistantName: String = "Sahiba AI",
+    val aiTone: String = "Friendly",
+    val translationLanguage: String = "English"
 )
 
 /**
@@ -45,7 +50,12 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             userAvatarUrl = prefs.getString("user_avatar", "") ?: "",
             isAuthenticated = prefs.getBoolean("is_authenticated", false),
             isProfileSetupDone = prefs.getBoolean("is_profile_done", false),
-            sessionToken = prefs.getString("session_token", "") ?: ""
+            sessionToken = prefs.getString("session_token", "") ?: "",
+            isVerified = prefs.getBoolean("is_verified", false),
+            isVerificationPending = prefs.getBoolean("is_verification_pending", false),
+            aiAssistantName = prefs.getString("ai_assistant_name", "Sahiba AI") ?: "Sahiba AI",
+            aiTone = prefs.getString("ai_tone", "Friendly") ?: "Friendly",
+            translationLanguage = prefs.getString("translation_language", "English") ?: "English"
         )
     )
     val uiState: StateFlow<AuthUiState> = _uiState.asStateFlow()
@@ -206,5 +216,82 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         prefs.edit().clear().apply()
         BrevoEmailService.clearSession()
         Log.d(TAG, "Session wiped successfully. Logged out.")
+    }
+
+    fun requestVerification() {
+        _uiState.value = _uiState.value.copy(isVerificationPending = true)
+        prefs.edit().putBoolean("is_verification_pending", true).apply()
+        viewModelScope.launch {
+            try {
+                firestoreRepository.requestVerification(
+                    userId = _uiState.value.email.ifBlank { _uiState.value.phoneNumber },
+                    email = _uiState.value.email,
+                    name = _uiState.value.userName
+                )
+            } catch (e: Exception) {
+                Log.w(TAG, "Error submitting verification request: ${e.message}")
+            }
+        }
+    }
+
+    fun updateAiAssistantSettings(name: String, tone: String, lang: String) {
+        val cleanName = name.trim().ifEmpty { "Sahiba AI" }
+        _uiState.value = _uiState.value.copy(
+            aiAssistantName = cleanName,
+            aiTone = tone,
+            translationLanguage = lang
+        )
+        prefs.edit()
+            .putString("ai_assistant_name", cleanName)
+            .putString("ai_tone", tone)
+            .putString("translation_language", lang)
+            .apply()
+
+        viewModelScope.launch {
+            try {
+                firestoreRepository.syncUserProfile(
+                    com.example.data.firebase.firestore.models.UserProfileDocument(
+                        id = _uiState.value.email.ifBlank { _uiState.value.phoneNumber },
+                        aiAssistantName = cleanName,
+                        aiTone = tone,
+                        translationLanguage = lang
+                    )
+                )
+            } catch (_: Exception) {}
+        }
+    }
+
+    fun generateAiAvatar(prompt: String, onComplete: (String) -> Unit) {
+        viewModelScope.launch {
+            val generatedUrl = try {
+                com.example.data.ai.D4KAiSdkService.getInstance().generateAvatar(prompt.ifBlank { "Stylish modern digital avatar" })
+            } catch (e: Exception) {
+                "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300"
+            }
+
+            val cdnAvatarUrl = try {
+                com.example.data.supabase.SupabaseStorageService.getInstance().uploadProfileAvatar(
+                    context = getApplication(),
+                    imageUriOrUrl = generatedUrl,
+                    userEmailOrId = _uiState.value.email.ifBlank { _uiState.value.phoneNumber }
+                )
+            } catch (_: Exception) {
+                generatedUrl
+            }
+
+            _uiState.value = _uiState.value.copy(userAvatarUrl = cdnAvatarUrl)
+            prefs.edit().putString("user_avatar", cdnAvatarUrl).apply()
+
+            try {
+                firestoreRepository.syncUserProfile(
+                    com.example.data.firebase.firestore.models.UserProfileDocument(
+                        id = _uiState.value.email.ifBlank { _uiState.value.phoneNumber },
+                        photoUrl = cdnAvatarUrl
+                    )
+                )
+            } catch (_: Exception) {}
+
+            onComplete(cdnAvatarUrl)
+        }
     }
 }

@@ -150,9 +150,34 @@ fun ProfileSetupScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Preset Avatars Selector
-            Text("Choose an avatar", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(modifier = Modifier.height(6.dp))
+            // Preset Avatars & AI Avatar Generation Selector
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text("Choose or Generate Avatar", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                var isGenerating by remember { mutableStateOf(false) }
+                val context = androidx.compose.ui.platform.LocalContext.current
+                TextButton(
+                    onClick = {
+                        isGenerating = true
+                        authViewModel.generateAiAvatar("Professional futuristic digital avatar 3d") { generated ->
+                            selectedAvatar = generated
+                            isGenerating = false
+                            android.widget.Toast.makeText(context, "AI Avatar generated!", android.widget.Toast.LENGTH_SHORT).show()
+                        }
+                    },
+                    enabled = !isGenerating
+                ) {
+                    if (isGenerating) {
+                        CircularProgressIndicator(modifier = Modifier.size(14.dp), color = WhatsAppEmerald, strokeWidth = 2.dp)
+                        Spacer(modifier = Modifier.width(4.dp))
+                    }
+                    Text(if (isGenerating) "Generating..." else "✨ Generate AI Avatar", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = WhatsAppEmerald)
+                }
+            }
+            Spacer(modifier = Modifier.height(4.dp))
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {

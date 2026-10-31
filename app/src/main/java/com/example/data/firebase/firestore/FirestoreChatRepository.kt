@@ -112,6 +112,29 @@ class FirestoreChatRepository(
     }
 
     /**
+     * Submits a real verification request (Blue Tick) to Firestore verification_requests collection.
+     */
+    suspend fun requestVerification(userId: String, email: String, name: String) {
+        if (userId.isBlank()) return
+        try {
+            val docData = mapOf(
+                "userId" to userId,
+                "email" to email,
+                "name" to name,
+                "requestedAt" to System.currentTimeMillis(),
+                "status" to "PENDING"
+            )
+            firestore.collection("verification_requests")
+                .document(userId)
+                .set(docData, SetOptions.merge())
+                .awaitTask()
+            Log.d(TAG, "Verification request submitted to Firestore for $userId")
+        } catch (e: Exception) {
+            Log.w(TAG, "Error submitting verification request: ${e.message}")
+        }
+    }
+
+    /**
      * Updates real-time presence (online/lastSeen) state in Firestore.
      */
     suspend fun updateUserPresence(userId: String, isOnline: Boolean) {
