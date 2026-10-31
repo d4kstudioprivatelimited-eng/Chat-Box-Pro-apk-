@@ -39,15 +39,15 @@ class SupabaseStorageService private constructor() {
     private val client = OkHttpClient()
 
     private val supabaseUrl: String = try {
-        BuildConfig.SUPABASE_URL.ifEmpty { "https://chatboxpro-demo.supabase.co" }
+        BuildConfig.SUPABASE_URL.ifEmpty { "https://iohfptimnddzqfcevctf.supabase.co" }
     } catch (e: Throwable) {
-        "https://chatboxpro-demo.supabase.co"
+        "https://iohfptimnddzqfcevctf.supabase.co"
     }
 
     private val supabaseAnonKey: String = try {
-        BuildConfig.SUPABASE_ANON_KEY.ifEmpty { "demo-anon-key-chatboxpro" }
+        BuildConfig.SUPABASE_ANON_KEY.ifEmpty { "sb_publishable_GiV9nDa1LXCZ76-_wPapKA_bl7nav65" }
     } catch (e: Throwable) {
-        "demo-anon-key-chatboxpro"
+        "sb_publishable_GiV9nDa1LXCZ76-_wPapKA_bl7nav65"
     }
 
     private val _transferLogs = MutableStateFlow<List<EphemeralTransferLog>>(

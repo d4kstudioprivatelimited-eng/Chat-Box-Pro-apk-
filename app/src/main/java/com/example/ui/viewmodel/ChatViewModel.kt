@@ -47,17 +47,57 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
     private val _isDarkMode = MutableStateFlow<Boolean?>(null) // null = system
     val isDarkMode: StateFlow<Boolean?> = _isDarkMode.asStateFlow()
 
-    // Chats filtered by search query
+    private val prefs = application.getSharedPreferences("chatbox_settings", android.content.Context.MODE_PRIVATE)
+    private val _isAiAutoReplyEnabled = MutableStateFlow(
+        prefs.getBoolean("is_ai_autoreply_enabled", true)
+    )
+    val isAiAutoReplyEnabled: StateFlow<Boolean> = _isAiAutoReplyEnabled.asStateFlow()
+
+    private val defaultQuickReplies = listOf("Sounds good! 👍", "On my way! 🚀", "Call you in 5 📞", "Thanks! 🙏", "Send details 📄")
+    private val _customQuickReplies = MutableStateFlow<List<String>>(
+        prefs.getStringSet("custom_quick_replies", defaultQuickReplies.toSet())?.toList() ?: defaultQuickReplies
+    )
+    val customQuickReplies: StateFlow<List<String>> = _customQuickReplies.asStateFlow()
+
+    fun addCustomQuickReply(reply: String) {
+        if (reply.isNotBlank() && !_customQuickReplies.value.contains(reply)) {
+            val updated = _customQuickReplies.value + reply.trim()
+            _customQuickReplies.value = updated
+            prefs.edit().putStringSet("custom_quick_replies", updated.toSet()).apply()
+        }
+    }
+
+    fun removeCustomQuickReply(reply: String) {
+        val updated = _customQuickReplies.value.filter { it != reply }
+        _customQuickReplies.value = updated
+        prefs.edit().putStringSet("custom_quick_replies", updated.toSet()).apply()
+    }
+
+    fun toggleAiAutoReply(enabled: Boolean) {
+        prefs.edit().putBoolean("is_ai_autoreply_enabled", enabled).apply()
+        _isAiAutoReplyEnabled.value = enabled
+    }
+
+
+    // Chats filtered by search query with strict anti-scraping rule
     val chats: StateFlow<List<ChatEntity>> = combine(
         repository.allChats,
         _searchQuery
     ) { chatList, query ->
-        if (query.isBlank()) {
+        val trimmed = query.trim()
+        if (trimmed.isBlank()) {
             chatList
         } else {
-            chatList.filter {
-                it.name.contains(query, ignoreCase = true) ||
-                it.lastMessageText.contains(query, ignoreCase = true)
+            val isExactEmail = android.util.Patterns.EMAIL_ADDRESS.matcher(trimmed).matches()
+            val isExactPhone = trimmed.replace(Regex("[^0-9+]"), "").length >= 10
+            if (isExactEmail || isExactPhone) {
+                chatList.filter {
+                    it.name.contains(trimmed, ignoreCase = true) ||
+                    it.phone.contains(trimmed, ignoreCase = true) ||
+                    it.lastMessageText.contains(trimmed, ignoreCase = true)
+                }
+            } else {
+                emptyList() // Ignore partial inputs strictly to prevent data scraping
             }
         }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -216,9 +256,9 @@ class ChatViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun createGroup(name: String, desc: String, members: List<String>, onCreated: (String) -> Unit) {
+    fun createGroup(name: String, desc: String, avatarUrl: String = "", members: List<String>, onCreated: (String) -> Unit) {
         viewModelScope.launch {
-            val chatId = repository.createGroup(name, desc, members)
+            val chatId = repository.createGroup(name, desc, avatarUrl, members)
             try {
                 firestoreRepository.createOrUpdateChatRoom(
                     com.example.data.firebase.firestore.models.ChatRoomDocument(

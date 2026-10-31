@@ -26,7 +26,9 @@ fun MediaAttachmentSheet(
     onAttachDocument: () -> Unit,
     onAttachAudio: () -> Unit,
     onAttachLocation: () -> Unit,
-    onAttachContact: () -> Unit
+    onAttachContact: () -> Unit,
+    onAttachPoll: () -> Unit = {},
+    onAttachAiImages: () -> Unit = {}
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -36,43 +38,45 @@ fun MediaAttachmentSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp, vertical = 16.dp)
+                .padding(horizontal = 16.dp, vertical = 16.dp)
         ) {
-            Text(
-                "Share Content",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(bottom = 20.dp)
-            )
-
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 AttachmentOption(
-                    title = "Document",
-                    icon = Icons.Default.Description,
-                    color = Color(0xFF7F66FF),
+                    title = "Gallery",
+                    icon = Icons.Default.PhotoLibrary,
+                    color = Color(0xFF00A884),
                     onClick = {
-                        onAttachDocument()
+                        onAttachPhoto()
                         onDismiss()
                     }
                 )
                 AttachmentOption(
                     title = "Camera",
                     icon = Icons.Default.CameraAlt,
-                    color = Color(0xFFD3396D),
+                    color = Color(0xFFEC407A),
                     onClick = {
                         onAttachPhoto()
                         onDismiss()
                     }
                 )
                 AttachmentOption(
-                    title = "Gallery",
-                    icon = Icons.Default.PhotoLibrary,
-                    color = Color(0xFFAC44CF),
+                    title = "Location",
+                    icon = Icons.Default.LocationOn,
+                    color = Color(0xFF00C853),
                     onClick = {
-                        onAttachPhoto()
+                        onAttachLocation()
+                        onDismiss()
+                    }
+                )
+                AttachmentOption(
+                    title = "Contact",
+                    icon = Icons.Default.Person,
+                    color = Color(0xFF0288D1),
+                    onClick = {
+                        onAttachContact()
                         onDismiss()
                     }
                 )
@@ -85,29 +89,38 @@ fun MediaAttachmentSheet(
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 AttachmentOption(
+                    title = "Document",
+                    icon = Icons.Default.Description,
+                    color = Color(0xFF7E57C2),
+                    onClick = {
+                        onAttachDocument()
+                        onDismiss()
+                    }
+                )
+                AttachmentOption(
                     title = "Audio",
                     icon = Icons.Default.Headphones,
-                    color = Color(0xFFFF8A00),
+                    color = Color(0xFFFF7043),
                     onClick = {
                         onAttachAudio()
                         onDismiss()
                     }
                 )
                 AttachmentOption(
-                    title = "Location",
-                    icon = Icons.Default.LocationOn,
-                    color = Color(0xFF1FA855),
+                    title = "Poll",
+                    icon = Icons.Default.Poll,
+                    color = Color(0xFFFFB300),
                     onClick = {
-                        onAttachLocation()
+                        onAttachPoll()
                         onDismiss()
                     }
                 )
                 AttachmentOption(
-                    title = "Contact",
-                    icon = Icons.Default.Person,
-                    color = Color(0xFF009DE2),
+                    title = "AI images",
+                    icon = Icons.Default.AutoAwesome,
+                    color = Color(0xFF29B6F6),
                     onClick = {
-                        onAttachContact()
+                        onAttachAiImages()
                         onDismiss()
                     }
                 )

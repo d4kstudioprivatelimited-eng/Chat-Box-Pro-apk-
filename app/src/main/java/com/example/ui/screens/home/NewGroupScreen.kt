@@ -37,8 +37,17 @@ fun NewGroupScreen(
     val contacts by chatViewModel.contacts.collectAsState()
     var groupName by remember { mutableStateOf("") }
     var groupDesc by remember { mutableStateOf("") }
+    var groupAvatarUrl by remember { mutableStateOf("") }
     var onlyAdminCanPost by remember { mutableStateOf(false) }
     val selectedContactIds = remember { mutableStateListOf<String>() }
+
+    val groupPhotoPicker = androidx.activity.compose.rememberLauncherForActivityResult(
+        contract = androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia()
+    ) { uri ->
+        if (uri != null) {
+            groupAvatarUrl = uri.toString()
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -70,6 +79,7 @@ fun NewGroupScreen(
                         chatViewModel.createGroup(
                             name = groupName,
                             desc = groupDesc,
+                            avatarUrl = groupAvatarUrl,
                             members = selectedContactIds.toList(),
                             onCreated = onGroupCreated
                         )
@@ -103,12 +113,28 @@ fun NewGroupScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Box(
                                 modifier = Modifier
-                                    .size(54.dp)
+                                    .size(58.dp)
                                     .clip(CircleShape)
-                                    .background(WhatsAppEmerald.copy(alpha = 0.2f)),
+                                    .background(WhatsAppEmerald.copy(alpha = 0.2f))
+                                    .clickable {
+                                        groupPhotoPicker.launch(
+                                            androidx.activity.result.PickVisualMediaRequest(
+                                                androidx.activity.result.contract.ActivityResultContracts.PickVisualMedia.ImageOnly
+                                            )
+                                        )
+                                    },
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(Icons.Default.CameraAlt, contentDescription = "Group Icon", tint = WhatsAppEmerald)
+                                if (groupAvatarUrl.isNotEmpty()) {
+                                    AsyncImage(
+                                        model = groupAvatarUrl,
+                                        contentDescription = "Group Photo",
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier.fillMaxSize()
+                                    )
+                                } else {
+                                    Icon(Icons.Default.CameraAlt, contentDescription = "Group Icon", tint = WhatsAppEmerald)
+                                }
                             }
 
                             Spacer(modifier = Modifier.width(16.dp))

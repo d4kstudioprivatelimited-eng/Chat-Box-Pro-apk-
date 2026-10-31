@@ -340,40 +340,6 @@ class MainActivity :FragmentActivity () {
                                                 contentDescription = "Dismiss",
                                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                                 modifier = Modifier.size(18.dp)
-                                                fun showBiometricPrompt(
-    activity: androidx.fragment.app.FragmentActivity,
-    onSuccess: () -> Unit,
-    onError: (String) -> Unit
-) {
-    val executor = ContextCompat.getMainExecutor(activity)
-    
-    val biometricPrompt = BiometricPrompt(activity, executor,
-        object : BiometricPrompt.AuthenticationCallback() {
-            override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                super.onAuthenticationError(errorCode, errString)
-                onError(errString.toString())
-            }
-
-            override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                super.onAuthenticationSucceeded(result)
-                onSuccess()
-            }
-
-            override fun onAuthenticationFailed() {
-                super.onAuthenticationFailed()
-                onError("Authentication failed. Please try again.")
-            }
-        })
-
-    val promptInfo = BiometricPrompt.PromptInfo.Builder()
-        .setTitle("App Lock")
-        .setSubtitle("अनलॉक करने के लिए फिंगरप्रिंट या स्क्रीन लॉक का उपयोग करें")
-        .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
-        .build()
-
-    biometricPrompt.authenticate(promptInfo)
-                                                }
-                                                
                                             )
                                         }
                                     }
@@ -385,5 +351,42 @@ class MainActivity :FragmentActivity () {
             }
         }
     }
+
+    fun showBiometricPrompt(
+        activity: FragmentActivity,
+        onSuccess: () -> Unit,
+        onError: (String) -> Unit
+    ) {
+        val executor = ContextCompat.getMainExecutor(activity)
+        val biometricPrompt = BiometricPrompt(activity, executor,
+            object : BiometricPrompt.AuthenticationCallback() {
+                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                    super.onAuthenticationError(errorCode, errString)
+                    onError(errString.toString())
+                }
+
+                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                    super.onAuthenticationSucceeded(result)
+                    onSuccess()
+                }
+
+                override fun onAuthenticationFailed() {
+                    super.onAuthenticationFailed()
+                    onError("Authentication failed. Please try again.")
+                }
+            })
+
+        val promptInfo = BiometricPrompt.PromptInfo.Builder()
+            .setTitle("App Lock")
+            .setSubtitle("Unlock using fingerprint or device screen lock")
+            .setAllowedAuthenticators(BiometricManager.Authenticators.BIOMETRIC_STRONG or BiometricManager.Authenticators.DEVICE_CREDENTIAL)
+            .build()
+
+        biometricPrompt.authenticate(promptInfo)
+    }
 }
 }
+
+
+
+

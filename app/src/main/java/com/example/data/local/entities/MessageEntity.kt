@@ -19,5 +19,6 @@ data class MessageEntity(
     val isEncrypted: Boolean = true,
     val reaction: String = "",
     val replyToMessageId: String = "",
-    val replyToText: String = ""
+    val replyToText: String = "",
+    val isEdited: Boolean = false
 )

@@ -215,6 +215,51 @@ fun SettingsScreen(
                 }
             }
 
+            // Advanced AI Auto-Reply Toggle
+            item {
+                val isAiReplyEnabled by chatViewModel.isAiAutoReplyEnabled.collectAsState()
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.AutoAwesome,
+                            contentDescription = null,
+                            tint = WhatsAppEmerald
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("AI Auto-Reply Assistant", fontWeight = FontWeight.SemiBold, fontSize = 15.sp)
+                        Text(
+                            if (isAiReplyEnabled) "Active • Displays 'AI Reply' status when away" else "Disabled",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+
+                    Switch(
+                        checked = isAiReplyEnabled,
+                        onCheckedChange = { checked ->
+                            chatViewModel.toggleAiAutoReply(checked)
+                        },
+                        colors = SwitchDefaults.colors(checkedThumbColor = WhatsAppEmerald),
+                        modifier = Modifier.testTag("ai_autoreply_switch")
+                    )
+                }
+            }
+
             // Offline APK Self-Extraction & Direct Share
             item {
                 SettingsItem(
@@ -223,29 +268,37 @@ fun SettingsScreen(
                     subtitle = "Extract ChatBoxPro.apk offline to Downloads • Share via Bluetooth or WhatsApp",
                     onClick = { showOfflineShareDialog = true }
                 )
+            }
 
+            item {
                 SettingsItem(
                     icon = Icons.Default.SystemUpdate,
                     title = "App Updates (Direct OTA)",
                     subtitle = "Download & install latest production build directly",
                     onClick = { showApkUpdateDialog = true }
                 )
+            }
 
-                // Zero-Footprint Ephemeral Transfers Inspector
+            // Zero-Footprint Ephemeral Transfers Inspector
+            item {
                 SettingsItem(
                     icon = Icons.Default.DeleteSweep,
                     title = "Zero-Footprint Ephemeral Media",
                     subtitle = "Verify files auto-deleted from server upon delivery",
                     onClick = { showZeroFootprintDialog = true }
                 )
+            }
 
+            item {
                 SettingsItem(
                     icon = Icons.Default.Security,
                     title = "End-to-End Encryption",
                     subtitle = "Verify safety numbers & Signal keys",
                     onClick = onNavigateToE2eeInfo
                 )
+            }
 
+            item {
                 SettingsItem(
                     icon = Icons.Default.Backup,
                     title = "Chat Backup",
@@ -254,35 +307,45 @@ fun SettingsScreen(
                         Toast.makeText(context, "Local chat database backup created successfully!", Toast.LENGTH_SHORT).show()
                     }
                 )
+            }
 
+            item {
                 SettingsItem(
                     icon = Icons.Default.Notifications,
                     title = "Notifications",
                     subtitle = "Message, group & call tones",
                     onClick = {}
                 )
+            }
 
+            item {
                 SettingsItem(
                     icon = Icons.Default.Security,
                     title = "App Permissions",
                     subtitle = "Camera, Microphone, Contacts & Notifications status",
                     onClick = { showPermissionsDialog = true }
                 )
+            }
 
+            item {
                 SettingsItem(
                     icon = Icons.Default.Language,
                     title = strings.appLanguage,
                     subtitle = "${currentLang.flagEmoji} ${currentLang.nativeName} (${currentLang.englishName}) • Tap to switch",
                     onClick = { showLanguageDialog = true }
                 )
+            }
 
+            item {
                 SettingsItem(
                     icon = Icons.Default.Info,
                     title = "About & Company Details",
                     subtitle = "D 4K Studio Private Limited • Danish Raja",
                     onClick = { showAboutDialog = true }
                 )
+            }
 
+            item {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
                 Row(

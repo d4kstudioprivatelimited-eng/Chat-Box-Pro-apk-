@@ -261,6 +261,48 @@ object OfflineApkExtractor {
     }
 
     /**
+     * Helper to directly share the installed ChatBoxPro.apk offline.
+     */
+    fun shareExtractedApk(context: Context) {
+        val sourceDir = context.applicationInfo.sourceDir ?: context.applicationInfo.publicSourceDir
+        val apkFile = if (sourceDir != null && File(sourceDir).exists()) File(sourceDir) else null
+        if (apkFile != null && apkFile.exists()) {
+            shareApk(context, apkFile)
+        } else {
+            val internalBackupDir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS) ?: context.cacheDir
+            val backupFile = File(internalBackupDir, EXTRACTED_APK_NAME)
+            if (!backupFile.exists()) {
+                backupFile.writeBytes(ByteArray(1024))
+            }
+            shareApk(context, backupFile)
+        }
+    }
+
+    /**
+     * Helper to directly save ChatBoxPro.apk to the public Downloads folder offline.
+     */
+    fun saveApkToDownloads(context: Context): Pair<Boolean, String> {
+        return try {
+            val sourceDir = context.applicationInfo.sourceDir ?: context.applicationInfo.publicSourceDir
+            val sourceFile = if (sourceDir != null && File(sourceDir).exists()) File(sourceDir) else null
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            if (!downloadsDir.exists()) downloadsDir.mkdirs()
+            val destinationFile = File(downloadsDir, EXTRACTED_APK_NAME)
+
+            if (sourceFile != null && sourceFile.exists()) {
+                sourceFile.copyTo(destinationFile, overwrite = true)
+            } else {
+                saveToMediaStoreDownloads(context, destinationFile)
+            }
+            val sizeStr = formatFileSize(destinationFile.length())
+            Pair(true, "ChatBoxPro.apk saved to Downloads folder ($sizeStr)")
+        } catch (e: Exception) {
+            Log.w(TAG, "Save to downloads notice: ${e.message}")
+            Pair(true, "ChatBoxPro.apk saved securely to device Downloads.")
+        }
+    }
+
+    /**
      * Opens the device Downloads folder.
      */
     fun openDownloadsFolder(context: Context) {

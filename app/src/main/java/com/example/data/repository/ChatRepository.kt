@@ -165,27 +165,30 @@ class ChatRepository(private val database: ChatBoxDatabase) {
             // If not group, simulate contact typing and replying!
             val chat = chatDao.getChatById(chatId)
             if (chat != null && !chat.isGroup) {
-                delay(800)
-                chatDao.updatePresence(chatId, "Online")
-                delay(1000)
-                chatDao.updatePresence(chatId, "Typing...")
-                delay(1800)
+                delay(600)
+                chatDao.updatePresence(chatId, "AI Reply")
 
-                val replyContent = generateSimulatedReply(chat.name, content, mediaType)
+                val aiReplyText = try {
+                    com.example.data.ai.D4KAiSdkService.getInstance().generateAutoReply(content)
+                } catch (e: Exception) {
+                    generateSimulatedReply(chat.name, content, mediaType)
+                }
+                
+                val aiReplyContent = if (aiReplyText.startsWith("🤖")) aiReplyText else "🤖 $aiReplyText"
                 val replyMessage = MessageEntity(
                     id = UUID.randomUUID().toString(),
                     chatId = chatId,
                     senderId = chatId,
                     senderName = chat.name,
-                    content = replyContent,
+                    content = aiReplyContent,
                     mediaType = "TEXT",
                     timestamp = System.currentTimeMillis(),
                     status = "READ",
                     isEncrypted = true
                 )
                 messageDao.insertMessage(replyMessage)
-                chatDao.updateLastMessage(chatId, replyContent, System.currentTimeMillis(), unreadDelta = 0)
-                chatDao.updatePresence(chatId, "Online")
+                chatDao.updateLastMessage(chatId, aiReplyContent, System.currentTimeMillis(), unreadDelta = 0)
+                chatDao.updatePresence(chatId, "AI Reply")
             }
         }
     }
@@ -229,12 +232,12 @@ class ChatRepository(private val database: ChatBoxDatabase) {
         return id
     }
 
-    suspend fun createGroup(name: String, description: String, selectedContactIds: List<String>): String {
+    suspend fun createGroup(name: String, description: String, avatarUrl: String = "", selectedContactIds: List<String>): String {
         val id = "group_${UUID.randomUUID().toString().take(8)}"
         val chat = ChatEntity(
             id = id,
             name = name,
-            avatarUrl = "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=200",
+            avatarUrl = avatarUrl.ifEmpty { "https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=200" },
             isGroup = true,
             groupAdminIds = "me",
             groupDescription = description,

@@ -58,6 +58,7 @@ fun HomeScreen(
     val strings = com.example.ui.localization.LocalAppStrings.current
 
     var showStatusPrivacyDialog by remember { mutableStateOf(false) }
+    var showWhatsAppWebDialog by remember { mutableStateOf(false) }
     val currentPrivacyOption by chatViewModel.statusPrivacyOption.collectAsState()
 
     Scaffold(
@@ -181,6 +182,14 @@ fun HomeScreen(
                                             onNavigateToContactSync()
                                         }
                                     )
+                                     DropdownMenuItem(
+                                        text = { Text("Linked devices (WhatsApp Web)") },
+                                        leadingIcon = { Icon(Icons.Default.QrCodeScanner, contentDescription = null, tint = WhatsAppEmerald) },
+                                        onClick = {
+                                            menuExpanded = false
+                                            showWhatsAppWebDialog = true
+                                        }
+                                    )
                                     DropdownMenuItem(
                                         text = { Text("Security & E2EE") },
                                         leadingIcon = { Icon(Icons.Default.Security, contentDescription = null) },
@@ -280,6 +289,76 @@ fun HomeScreen(
                 }
             }
         },
+        bottomBar = {
+            NavigationBar(
+                containerColor = MaterialTheme.colorScheme.surface,
+                tonalElevation = 6.dp,
+                modifier = Modifier
+                    .navigationBarsPadding()
+                    .testTag("whatsapp_bottom_navigation_bar")
+            ) {
+                NavigationBarItem(
+                    selected = selectedTabIndex == 0,
+                    onClick = { selectedTabIndex = 0 },
+                    icon = {
+                        BadgedBox(
+                            badge = {
+                                if (totalUnread > 0) {
+                                    Badge(containerColor = WhatsAppEmerald, contentColor = Color.Black) {
+                                        Text(totalUnread.toString(), fontWeight = FontWeight.Bold)
+                                    }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                if (selectedTabIndex == 0) Icons.AutoMirrored.Filled.Chat else Icons.Outlined.ChatBubbleOutline,
+                                contentDescription = strings.chats
+                            )
+                        }
+                    },
+                    label = { Text(strings.chats, fontWeight = if (selectedTabIndex == 0) FontWeight.Bold else FontWeight.Normal) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = WhatsAppEmerald,
+                        selectedTextColor = WhatsAppEmerald,
+                        indicatorColor = WhatsAppEmerald.copy(alpha = 0.18f)
+                    )
+                )
+
+                NavigationBarItem(
+                    selected = selectedTabIndex == 1,
+                    onClick = { selectedTabIndex = 1 },
+                    icon = {
+                        Icon(
+                            if (selectedTabIndex == 1) Icons.Default.DonutLarge else Icons.Outlined.DonutLarge,
+                            contentDescription = strings.status
+                        )
+                    },
+                    label = { Text(strings.status, fontWeight = if (selectedTabIndex == 1) FontWeight.Bold else FontWeight.Normal) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = WhatsAppEmerald,
+                        selectedTextColor = WhatsAppEmerald,
+                        indicatorColor = WhatsAppEmerald.copy(alpha = 0.18f)
+                    )
+                )
+
+                NavigationBarItem(
+                    selected = selectedTabIndex == 2,
+                    onClick = { selectedTabIndex = 2 },
+                    icon = {
+                        Icon(
+                            if (selectedTabIndex == 2) Icons.Default.Call else Icons.Outlined.Call,
+                            contentDescription = strings.calls
+                        )
+                    },
+                    label = { Text(strings.calls, fontWeight = if (selectedTabIndex == 2) FontWeight.Bold else FontWeight.Normal) },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = WhatsAppEmerald,
+                        selectedTextColor = WhatsAppEmerald,
+                        indicatorColor = WhatsAppEmerald.copy(alpha = 0.18f)
+                    )
+                )
+            }
+        },
         floatingActionButton = {
             when (selectedTabIndex) {
                 0 -> {
@@ -362,6 +441,20 @@ fun HomeScreen(
             onDismiss = { showStatusPrivacyDialog = false },
             onSaveOption = { newOption ->
                 chatViewModel.updateStatusPrivacy(newOption)
+            }
+        )
+    }
+
+    if (showWhatsAppWebDialog) {
+        com.example.ui.screens.whatsapp.WhatsAppLinkedDeviceDialog(
+            onDismiss = { showWhatsAppWebDialog = false },
+            onStartWhatsAppChat = { name, phone ->
+                chatViewModel.createChat(
+                    name = name,
+                    phone = phone,
+                    avatar = "",
+                    onCreated = onNavigateToChat
+                )
             }
         )
     }

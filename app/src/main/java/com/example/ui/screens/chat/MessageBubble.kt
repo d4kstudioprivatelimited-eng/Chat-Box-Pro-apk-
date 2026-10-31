@@ -380,10 +380,22 @@ fun MessageBubble(
                             }
 
                             "LOCATION" -> {
+                                val context = androidx.compose.ui.platform.LocalContext.current
                                 Surface(
                                     shape = RoundedCornerShape(10.dp),
                                     color = MaterialTheme.colorScheme.surface.copy(alpha = 0.6f),
-                                    modifier = Modifier.fillMaxWidth()
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            val geoUri = android.net.Uri.parse("https://maps.google.com/?q=37.7749,-122.4194")
+                                            val mapIntent = android.content.Intent(android.content.Intent.ACTION_VIEW, geoUri)
+                                            mapIntent.setPackage("com.google.android.apps.maps")
+                                            try {
+                                                context.startActivity(mapIntent)
+                                            } catch (_: Exception) {
+                                                context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, geoUri))
+                                            }
+                                        }
                                 ) {
                                     Column(modifier = Modifier.padding(10.dp)) {
                                         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -404,7 +416,7 @@ fun MessageBubble(
                                             Spacer(modifier = Modifier.width(10.dp))
                                             Column(modifier = Modifier.weight(1f)) {
                                                 Text(
-                                                    text = "📍 Live Location",
+                                                    text = "📍 Live Location (Tap to open Maps)",
                                                     fontWeight = FontWeight.Bold,
                                                     fontSize = 13.sp,
                                                     color = WhatsAppEmerald
@@ -419,9 +431,10 @@ fun MessageBubble(
                                         }
                                         Spacer(modifier = Modifier.height(6.dp))
                                         Text(
-                                            "Updated just now • End-to-End Encrypted",
-                                            fontSize = 9.sp,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            "⏱️ Live ETA: ~12 mins • Updated just now",
+                                            fontSize = 10.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = WhatsAppEmerald
                                         )
                                     }
                                 }
@@ -444,6 +457,14 @@ fun MessageBubble(
                                 .padding(top = 2.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            if (message.isEdited) {
+                                Text(
+                                    text = "Edited • ",
+                                    fontSize = 10.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = WhatsAppEmerald
+                                )
+                            }
                             Text(
                                 text = timeStr,
                                 fontSize = 10.sp,

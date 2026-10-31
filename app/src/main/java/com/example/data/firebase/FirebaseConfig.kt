@@ -6,13 +6,13 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.FirebaseOptions
 
 object FirebaseConfig {
-    const val API_KEY = "AIzaSyC8W39FGf6rQPC8Qdz0GIaOtc6pTrN6MEw"
+    const val API_KEY = "AIzaSyAwiMHd5xaq7g40MMtdw-SNF0PANRFCOvA"
     const val AUTH_DOMAIN = "caht-box.firebaseapp.com"
     const val DATABASE_URL = "https://caht-box-default-rtdb.firebaseio.com"
     const val PROJECT_ID = "caht-box"
     const val STORAGE_BUCKET = "caht-box.firebasestorage.app"
     const val MESSAGING_SENDER_ID = "324693596002"
-    const val APP_ID = "1:324693596002:web:c21309d06e1ca3fcc3be3b"
+    const val APP_ID = "1:324693596002:android:f5d74f3990e07b5ac3be3b"
 
     fun init(context: Context) {
         try {

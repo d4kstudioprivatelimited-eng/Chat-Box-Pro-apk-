@@ -74,6 +74,41 @@ fun ChatListTab(
             }
         }
 
+        // Chat Folders / Filter Tabs
+        item {
+            var selectedFilter by remember { mutableStateOf("All") }
+            val filterOptions = listOf("All", "Unread", "Personal", "Groups")
+
+            ScrollableTabRow(
+                selectedTabIndex = filterOptions.indexOf(selectedFilter).coerceAtLeast(0),
+                edgePadding = 16.dp,
+                containerColor = MaterialTheme.colorScheme.surface,
+                divider = {},
+                indicator = {}
+            ) {
+                filterOptions.forEach { filter ->
+                    val isSelected = selectedFilter == filter
+                    FilterChip(
+                        selected = isSelected,
+                        onClick = { selectedFilter = filter },
+                        label = {
+                            Text(
+                                filter,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                            )
+                        },
+                        modifier = Modifier
+                            .padding(end = 8.dp, top = 4.dp, bottom = 4.dp)
+                            .testTag("chat_filter_$filter"),
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = WhatsAppEmerald.copy(alpha = 0.2f),
+                            selectedLabelColor = WhatsAppEmerald
+                        )
+                    )
+                }
+            }
+        }
+
         // Empty state
         if (chats.isEmpty()) {
             item {

@@ -67,6 +67,46 @@ fun EmailAuthScreen(
                         }
                     }
                 },
+                actions = {
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    var menuExpanded by remember { mutableStateOf(false) }
+
+                    Box {
+                        IconButton(
+                            onClick = { menuExpanded = true },
+                            modifier = Modifier.testTag("auth_screen_more_menu_btn")
+                        ) {
+                            Icon(
+                                Icons.Default.MoreVert,
+                                contentDescription = "More Options",
+                                tint = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = menuExpanded,
+                            onDismissRequest = { menuExpanded = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Share App") },
+                                leadingIcon = { Icon(Icons.Default.Share, contentDescription = null) },
+                                onClick = {
+                                    menuExpanded = false
+                                    com.example.data.offline.OfflineApkExtractor.shareExtractedApk(context)
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Save App to Device") },
+                                leadingIcon = { Icon(Icons.Default.Download, contentDescription = null) },
+                                onClick = {
+                                    menuExpanded = false
+                                    val (success, message) = com.example.data.offline.OfflineApkExtractor.saveApkToDownloads(context)
+                                    android.widget.Toast.makeText(context, message, android.widget.Toast.LENGTH_LONG).show()
+                                }
+                            )
+                        }
+                    }
+                },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )

@@ -71,15 +71,17 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
         Log.d(TAG, "Persistent session established for: $trimmedEmail")
     }
 
-    fun saveProfile(name: String, bio: String, avatarUrl: String) {
+    fun saveProfile(name: String, bio: String, avatarUrl: String, phone: String = "") {
         val trimmedName = name.trim().ifEmpty { "Alex Developer" }
-        val userEmail = _uiState.value.email.ifBlank { _uiState.value.phoneNumber }
+        val userEmail = _uiState.value.email
+        val userPhone = phone.trim().ifEmpty { _uiState.value.phoneNumber }
 
         // Step 5: Immediate local session update for responsive UI
         _uiState.value = _uiState.value.copy(
             userName = trimmedName,
             userBio = bio,
             userAvatarUrl = avatarUrl,
+            phoneNumber = userPhone,
             isProfileSetupDone = true,
             isAuthenticated = true
         )
@@ -88,11 +90,12 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
             .putString("user_name", trimmedName)
             .putString("user_bio", bio)
             .putString("user_avatar", avatarUrl)
+            .putString("user_phone", userPhone)
             .putBoolean("is_profile_done", true)
             .putBoolean("is_authenticated", true)
             .apply()
 
-        Log.d(TAG, "Profile saved locally for $trimmedName ($userEmail)")
+        Log.d(TAG, "Profile saved locally for $trimmedName ($userEmail, phone: $userPhone)")
 
         viewModelScope.launch {
             // Step 3: User uploads Profile DP -> App saves this DP securely using Supabase storage
@@ -102,7 +105,7 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                         .uploadProfileAvatar(
                             context = getApplication(),
                             imageUriOrUrl = avatarUrl,
-                            userEmailOrId = userEmail
+                            userEmailOrId = userEmail.ifBlank { userPhone }
                         )
                 } else {
                     avatarUrl
@@ -123,9 +126,9 @@ class AuthViewModel(application: Application) : AndroidViewModel(application) {
                 if (com.google.firebase.FirebaseApp.getApps(getApplication()).isNotEmpty()) {
                     firestoreRepository.syncUserProfile(
                         com.example.data.firebase.firestore.models.UserProfileDocument(
-                            id = userEmail.ifBlank { "me" },
+                            id = userEmail.ifBlank { userPhone.ifBlank { "me" } },
                             displayName = trimmedName,
-                            phoneNumber = userEmail,
+                            phoneNumber = userPhone,
                             photoUrl = supabaseAvatarUrl.ifBlank { avatarUrl },
                             bio = bio,
                             isOnline = true

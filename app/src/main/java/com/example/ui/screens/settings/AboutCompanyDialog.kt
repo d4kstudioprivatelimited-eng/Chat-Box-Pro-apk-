@@ -28,7 +28,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.data.firebase.FirebaseConfig
 import com.example.ui.theme.WhatsAppEmerald
 import com.example.ui.theme.WhatsAppGreenDark
 
@@ -177,7 +176,7 @@ fun AboutCompanyDialog(onDismiss: () -> Unit) {
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Cloud Infrastructure Card
+                // Security Architecture Card
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
@@ -188,14 +187,14 @@ fun AboutCompanyDialog(onDismiss: () -> Unit) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.CloudQueue,
-                                contentDescription = "Cloud Infrastructure",
+                                imageVector = Icons.Default.Security,
+                                contentDescription = "Security Architecture",
                                 tint = WhatsAppEmerald,
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
-                                text = "Cloud Infrastructure Network",
+                                text = "Security & Network Architecture",
                                 style = MaterialTheme.typography.labelLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = WhatsAppEmerald
@@ -204,11 +203,11 @@ fun AboutCompanyDialog(onDismiss: () -> Unit) {
 
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        BackendConfigRow(key = "Network Cluster", value = FirebaseConfig.PROJECT_ID)
-                        BackendConfigRow(key = "Realtime Gateway", value = FirebaseConfig.DATABASE_URL)
-                        BackendConfigRow(key = "Media Endpoint", value = FirebaseConfig.STORAGE_BUCKET)
-                        BackendConfigRow(key = "Routing Node", value = FirebaseConfig.MESSAGING_SENDER_ID)
-                        BackendConfigRow(key = "Identity Server", value = FirebaseConfig.AUTH_DOMAIN)
+                        BackendConfigRow(key = "Encryption Standard", value = "256-Bit SSL & E2EE")
+                        BackendConfigRow(key = "Messaging Engine", value = "Chat Box Pro Secure Protocol")
+                        BackendConfigRow(key = "Media Vault", value = "Ephemeral Zero-Footprint Vault")
+                        BackendConfigRow(key = "Calling Network", value = "HD Peer-to-Peer WebRTC")
+                        BackendConfigRow(key = "App Platform", value = "D 4K Studio Private Limited")
                     }
                 }
 

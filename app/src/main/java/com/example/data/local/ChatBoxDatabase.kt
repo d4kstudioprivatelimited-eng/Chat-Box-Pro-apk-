@@ -15,7 +15,7 @@ import com.example.data.local.entities.*
         CallEntity::class,
         ContactEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class ChatBoxDatabase : RoomDatabase() {
@@ -36,7 +36,7 @@ abstract class ChatBoxDatabase : RoomDatabase() {
                     ChatBoxDatabase::class.java,
                     "chatbox_pro_database"
                 )
-                    .fallbackToDestructiveMigration()
+                    .fallbackToDestructiveMigration(true)
                     .build()
                 INSTANCE = instance
                 instance

@@ -237,7 +237,28 @@ fun StoryViewerScreen(
             }
         }
 
-        // Bottom Reply Input
+        // Swipe Up to Reply indicator
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 76.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icons.Default.Send,
+                contentDescription = null,
+                tint = Color.White.copy(alpha = 0.8f),
+                modifier = Modifier.size(16.dp)
+            )
+            Text(
+                text = "Swipe up to reply",
+                color = Color.White.copy(alpha = 0.8f),
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium
+            )
+        }
+
+        // Bottom Reply Input & Like Button
         Surface(
             color = Color.Black.copy(alpha = 0.5f),
             modifier = Modifier
@@ -245,12 +266,14 @@ fun StoryViewerScreen(
                 .fillMaxWidth()
                 .navigationBarsPadding()
                 .imePadding()
-                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                var isLiked by remember { mutableStateOf(false) }
+
                 OutlinedTextField(
                     value = replyText,
                     onValueChange = { replyText = it },
@@ -268,8 +291,30 @@ fun StoryViewerScreen(
                     singleLine = true
                 )
 
+                Spacer(modifier = Modifier.width(6.dp))
+
+                // Heart / Like Button
+                IconButton(
+                    onClick = {
+                        isLiked = !isLiked
+                        if (currentStory.authorId != "me") {
+                            chatViewModel.sendMessage(
+                                chatId = currentStory.authorId,
+                                content = "❤️ Liked your status"
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .size(44.dp)
+                        .clip(CircleShape)
+                        .background(if (isLiked) Color.Red.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f))
+                        .testTag("story_like_btn")
+                ) {
+                    Text(text = if (isLiked) "❤️" else "🤍", fontSize = 20.sp)
+                }
+
                 if (replyText.isNotBlank()) {
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
                     IconButton(
                         onClick = {
                             if (currentStory.authorId != "me") {

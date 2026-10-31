@@ -24,8 +24,12 @@ interface MessageDao {
     @Query("DELETE FROM messages WHERE id = :messageId")
     suspend fun deleteMessage(messageId: String)
 
+    @Query("UPDATE messages SET content = :newContent, isEdited = 1 WHERE id = :messageId")
+    suspend fun editMessage(messageId: String, newContent: String)
+
     @Query("UPDATE messages SET content = :newContent, mediaType = 'TEXT', mediaUrl = '' WHERE id = :messageId")
     suspend fun updateMessageContent(messageId: String, newContent: String)
+
 
     @Query("SELECT * FROM messages WHERE id = :messageId LIMIT 1")
     suspend fun getMessageById(messageId: String): MessageEntity?

@@ -15,6 +15,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -194,7 +195,26 @@ fun ProfileSetupScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // Mobile Number Field (Required for contact searching)
+            var phoneNumber by remember { mutableStateOf(state.phoneNumber) }
+            OutlinedTextField(
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                label = { Text("Mobile Number (for contact search)") },
+                placeholder = { Text("e.g. +91 9430320021") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("phone_number_input"),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                leadingIcon = {
+                    Icon(Icons.Default.Phone, contentDescription = null, tint = WhatsAppEmerald)
+                }
+            )
+
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Status Bio Field
             OutlinedTextField(
@@ -228,7 +248,12 @@ fun ProfileSetupScreen(
 
             Button(
                 onClick = {
-                    authViewModel.saveProfile(name.ifEmpty { "Alex Developer" }, bio, selectedAvatar)
+                    authViewModel.saveProfile(
+                        name = name.ifEmpty { "Alex Developer" },
+                        bio = bio,
+                        avatarUrl = selectedAvatar,
+                        phone = phoneNumber
+                    )
                     onComplete()
                 },
                 modifier = Modifier

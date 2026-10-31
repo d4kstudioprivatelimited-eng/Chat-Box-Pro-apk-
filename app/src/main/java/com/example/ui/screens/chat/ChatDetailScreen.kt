@@ -126,7 +126,7 @@ fun ChatDetailScreen(
                                     chatState?.presence ?: "Online"
                                 },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = if (chatState?.presence == "Online" || chatState?.presence == "Typing...") WhatsAppEmerald else MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = if (chatState?.presence == "Online" || chatState?.presence == "Typing..." || chatState?.presence == "AI Reply") WhatsAppEmerald else MaterialTheme.colorScheme.onSurfaceVariant,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
                             )
@@ -315,6 +315,34 @@ fun ChatDetailScreen(
                         IconButton(onClick = { replyToMessage = null }) {
                             Icon(Icons.Default.Close, contentDescription = "Cancel reply", modifier = Modifier.size(18.dp))
                         }
+                    }
+                }
+            }
+
+            val quickReplies by chatViewModel.customQuickReplies.collectAsState()
+            // Smart & Customizable Quick Replies
+            if (quickReplies.isNotEmpty()) {
+                ScrollableTabRow(
+                    selectedTabIndex = 0,
+                    edgePadding = 12.dp,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                    divider = {},
+                    indicator = {}
+                ) {
+                    quickReplies.forEach { suggest ->
+                        SuggestionChip(
+                            onClick = {
+                                chatViewModel.sendMessage(
+                                    chatId = chatId,
+                                    content = suggest,
+                                    mediaType = "TEXT"
+                                )
+                            },
+                            label = { Text(suggest, fontSize = 12.sp) },
+                            modifier = Modifier
+                                .padding(end = 6.dp, top = 2.dp, bottom = 2.dp)
+                                .testTag("suggest_chip_$suggest")
+                        )
                     }
                 }
             }
@@ -557,6 +585,21 @@ fun ChatDetailScreen(
                     chatId = chatId,
                     content = "👤 Contact Card: David Chen (+1 555-456-7890)",
                     mediaType = "CONTACT"
+                )
+            },
+            onAttachPoll = {
+                chatViewModel.sendMessage(
+                    chatId = chatId,
+                    content = "📊 Poll: Which feature should we launch first?\n1. AI Image Generator\n2. Voice Note Transcribe",
+                    mediaType = "POLL"
+                )
+            },
+            onAttachAiImages = {
+                chatViewModel.sendMessage(
+                    chatId = chatId,
+                    content = "✨ Generated AI Avatar 🖼️",
+                    mediaType = "IMAGE",
+                    mediaUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600"
                 )
             }
         )

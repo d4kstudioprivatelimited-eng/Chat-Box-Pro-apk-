@@ -21,8 +21,21 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.content.Context
+import android.content.ContextWrapper
+import androidx.fragment.app.FragmentActivity
+import androidx.compose.ui.platform.LocalContext
 import com.example.ui.theme.DarkBackground
 import com.example.ui.theme.WhatsAppEmerald
+
+private fun Context.findFragmentActivity(): FragmentActivity? {
+    var ctx = this
+    while (ctx is ContextWrapper) {
+        if (ctx is FragmentActivity) return ctx
+        ctx = ctx.baseContext
+    }
+    return null
+}
 
 @Composable
 fun AppLockScreen(
@@ -32,18 +45,22 @@ fun AppLockScreen(
     var isError by remember { mutableStateOf(false) }
 
     val shakeOffset = remember { Animatable(0f) }
-    val context = androidx.compose.ui.platform.LocalContext.current as MainActivity
-LaunchedEffect(Unit) {
-    context.showBiometricPrompt(
-        activity = context,
-        onSuccess = { 
-            // یہاں کامیابی پر انلاک کرنے کا کوڈ آئے گا
-        },
-        onError = { errorMsg -> 
-            // یہاں ایرر کو ہینڈل کریں
+    val context = LocalContext.current
+    val fragmentActivity = remember(context) { context.findFragmentActivity() }
+
+    LaunchedEffect(Unit) {
+        if (fragmentActivity != null && appLockManager.isBiometricEnabled.value && appLockManager.isBiometricHardwareAvailable()) {
+            appLockManager.triggerBiometricPrompt(
+                activity = fragmentActivity,
+                onSuccess = {
+                    appLockManager.unlockWithBiometrics()
+                },
+                onError = { _ -> }
+            )
         }
-    )
-}
+    }
+
+
 
 
     LaunchedEffect(isError) {
@@ -149,7 +166,20 @@ LaunchedEffect(Unit) {
                             when (key) {
                                 "BIO" -> {
                                     IconButton(
-                                        onClick = { appLockManager.unlockWithBiometrics() },
+                                        onClick = {
+                                            if (fragmentActivity != null && appLockManager.isBiometricHardwareAvailable()) {
+                                                appLockManager.triggerBiometricPrompt(
+                                                    activity = fragmentActivity,
+                                                    onSuccess = {
+                                                        appLockManager.unlockWithBiometrics()
+                                                    },
+                                                    onError = { _ -> }
+                                                )
+                                            } else {
+                                                appLockManager.unlockWithBiometrics()
+                                            }
+                                        },
+
                                         modifier = Modifier
                                             .size(72.dp)
                                             .clip(CircleShape)
