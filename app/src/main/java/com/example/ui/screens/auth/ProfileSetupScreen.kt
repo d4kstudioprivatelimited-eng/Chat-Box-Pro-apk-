@@ -14,6 +14,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Phone
 import androidx.compose.material3.*
@@ -86,17 +88,17 @@ fun ProfileSetupScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "Please provide your name and an optional profile picture",
+                "Please review your info and choose a profile picture",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(20.dp))
 
             // Avatar Preview
             Box(
                 contentAlignment = Alignment.BottomEnd,
-                modifier = Modifier.size(110.dp)
+                modifier = Modifier.size(100.dp)
             ) {
                 if (selectedAvatar.isNotEmpty()) {
                     AsyncImage(
@@ -119,7 +121,7 @@ fun ProfileSetupScreen(
                         Icon(
                             Icons.Default.Person,
                             contentDescription = "Avatar Placeholder",
-                            modifier = Modifier.size(54.dp),
+                            modifier = Modifier.size(50.dp),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -127,7 +129,7 @@ fun ProfileSetupScreen(
 
                 Box(
                     modifier = Modifier
-                        .size(36.dp)
+                        .size(34.dp)
                         .clip(CircleShape)
                         .background(WhatsAppEmerald)
                         .clickable {
@@ -146,19 +148,19 @@ fun ProfileSetupScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Preset Avatars Selector
             Text("Choose an avatar", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
             LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 items(presetAvatars) { avatarUrl ->
                     val isSelected = selectedAvatar == avatarUrl
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(44.dp)
                             .clip(CircleShape)
                             .clickable { selectedAvatar = avatarUrl }
                             .border(
@@ -177,7 +179,7 @@ fun ProfileSetupScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
 
             // Display Name Field
             OutlinedTextField(
@@ -195,30 +197,70 @@ fun ProfileSetupScreen(
                 }
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            // Mobile Number Field (Strictly Required for contact searching)
+            // 1. Immutable Verified Email ID Field
+            val verifiedEmail = state.email.ifBlank { state.phoneNumber }
+            OutlinedTextField(
+                value = verifiedEmail,
+                onValueChange = {},
+                readOnly = true,
+                enabled = false,
+                label = { Text("Verified Email ID (Locked)") },
+                supportingText = {
+                    Text("Email ID is verified & permanently locked", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .testTag("verified_email_input_locked"),
+                shape = RoundedCornerShape(12.dp),
+                singleLine = true,
+                leadingIcon = {
+                    Icon(Icons.Default.Email, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                },
+                trailingIcon = {
+                    Icon(Icons.Default.Lock, contentDescription = "Locked Email", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                },
+                colors = OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // 2. Lock-on-Save Mobile Number Field
+            val isPhoneAlreadySaved = state.isProfileSetupDone && state.phoneNumber.isNotBlank()
             var phoneNumber by remember { mutableStateOf(state.phoneNumber) }
             val cleanDigits = remember(phoneNumber) { phoneNumber.trim().replace(Regex("[^0-9+]"), "") }
-            val isPhoneValid = cleanDigits.length >= 10
+            val isPhoneValid = if (isPhoneAlreadySaved) true else cleanDigits.length >= 10
             var showError by remember { mutableStateOf(false) }
 
             OutlinedTextField(
-                value = phoneNumber,
+                value = if (isPhoneAlreadySaved) state.phoneNumber else phoneNumber,
                 onValueChange = { 
-                    phoneNumber = it 
-                    if (showError && it.trim().replace(Regex("[^0-9+]"), "").length >= 10) {
-                        showError = false
+                    if (!isPhoneAlreadySaved) {
+                        phoneNumber = it 
+                        if (showError && it.trim().replace(Regex("[^0-9+]"), "").length >= 10) {
+                            showError = false
+                        }
                     }
                 },
-                label = { Text("Mobile Number (Strictly Required)") },
+                readOnly = isPhoneAlreadySaved,
+                enabled = !isPhoneAlreadySaved,
+                label = { Text(if (isPhoneAlreadySaved) "Mobile Number (Locked)" else "Mobile Number (Strictly Required)") },
                 placeholder = { Text("e.g. +91 9430320021") },
-                isError = showError || (phoneNumber.isNotEmpty() && !isPhoneValid),
+                isError = !isPhoneAlreadySaved && (showError || (phoneNumber.isNotEmpty() && !isPhoneValid)),
                 supportingText = {
-                    if (showError || (phoneNumber.isNotEmpty() && !isPhoneValid)) {
-                        Text("A valid mobile number (min 10 digits) is strictly required.", color = MaterialTheme.colorScheme.error, fontSize = 12.sp)
+                    if (isPhoneAlreadySaved) {
+                        Text("Mobile Number is saved & permanently locked", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    } else if (showError || (phoneNumber.isNotEmpty() && !isPhoneValid)) {
+                        Text("A valid mobile number (min 10 digits) is strictly required.", color = MaterialTheme.colorScheme.error, fontSize = 11.sp)
                     } else {
-                        Text("Required for user search & contact verification", color = WhatsAppEmerald, fontSize = 12.sp)
+                        Text("Required for user search & contact verification • Locked on save", color = WhatsAppEmerald, fontSize = 11.sp)
                     }
                 },
                 modifier = Modifier
@@ -227,11 +269,23 @@ fun ProfileSetupScreen(
                 shape = RoundedCornerShape(12.dp),
                 singleLine = true,
                 leadingIcon = {
-                    Icon(Icons.Default.Phone, contentDescription = null, tint = WhatsAppEmerald)
-                }
+                    Icon(Icons.Default.Phone, contentDescription = null, tint = if (isPhoneAlreadySaved) MaterialTheme.colorScheme.onSurfaceVariant else WhatsAppEmerald)
+                },
+                trailingIcon = {
+                    if (isPhoneAlreadySaved) {
+                        Icon(Icons.Default.Lock, contentDescription = "Locked Mobile Number", tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                },
+                colors = if (isPhoneAlreadySaved) OutlinedTextFieldDefaults.colors(
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.4f),
+                    disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                    disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ) else OutlinedTextFieldDefaults.colors()
             )
 
-            Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             // Status Bio Field
             OutlinedTextField(
@@ -246,7 +300,7 @@ fun ProfileSetupScreen(
                 singleLine = true
             )
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             // Quick bio chips
             LazyRow(
@@ -265,7 +319,7 @@ fun ProfileSetupScreen(
 
             Button(
                 onClick = {
-                    if (!isPhoneValid) {
+                    if (!isPhoneAlreadySaved && !isPhoneValid) {
                         showError = true
                         return@Button
                     }
@@ -273,11 +327,11 @@ fun ProfileSetupScreen(
                         name = name.ifEmpty { "Alex Developer" },
                         bio = bio,
                         avatarUrl = selectedAvatar,
-                        phone = phoneNumber
+                        phone = if (isPhoneAlreadySaved) state.phoneNumber else phoneNumber
                     )
                     onComplete()
                 },
-                enabled = isPhoneValid && name.isNotBlank(),
+                enabled = (isPhoneAlreadySaved || isPhoneValid) && name.isNotBlank(),
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(50.dp)

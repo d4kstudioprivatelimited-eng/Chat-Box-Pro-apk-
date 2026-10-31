@@ -75,7 +75,7 @@ fun HomeScreen(
                             TextField(
                                 value = searchQuery,
                                 onValueChange = { chatViewModel.setSearchQuery(it) },
-                                placeholder = { Text("Search chats and messages...") },
+                                placeholder = { Text("Search by name, email or mobile number...") },
                                 singleLine = true,
                                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                                 keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
