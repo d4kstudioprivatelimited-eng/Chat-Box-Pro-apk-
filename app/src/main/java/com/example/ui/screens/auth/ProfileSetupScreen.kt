@@ -53,14 +53,6 @@ fun ProfileSetupScreen(
         }
     }
 
-    val presetAvatars = listOf(
-        "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=200",
-        "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=200",
-        "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=200",
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200",
-        "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200"
-    )
-
     val quickBios = listOf(
         "Available",
         "Busy 🛑",
@@ -93,7 +85,7 @@ fun ProfileSetupScreen(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             // Avatar Preview
             Box(
@@ -150,61 +142,52 @@ fun ProfileSetupScreen(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Preset Avatars & AI Avatar Generation Selector
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            // AI Avatar Generation & Native Gallery Picker Option
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             ) {
-                Text("Choose or Generate Avatar", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                var isGenerating by remember { mutableStateOf(false) }
-                val context = androidx.compose.ui.platform.LocalContext.current
-                TextButton(
-                    onClick = {
-                        isGenerating = true
-                        authViewModel.generateAiAvatar("Professional futuristic digital avatar 3d") { generated ->
-                            selectedAvatar = generated
-                            isGenerating = false
-                            android.widget.Toast.makeText(context, "AI Avatar generated!", android.widget.Toast.LENGTH_SHORT).show()
-                        }
-                    },
-                    enabled = !isGenerating
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    if (isGenerating) {
-                        CircularProgressIndicator(modifier = Modifier.size(14.dp), color = WhatsAppEmerald, strokeWidth = 2.dp)
-                        Spacer(modifier = Modifier.width(4.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Profile Photo Engine", fontSize = 13.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                        Text("Generate custom AI avatar or tap camera for gallery", fontSize = 11.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
-                    Text(if (isGenerating) "Generating..." else "✨ Generate AI Avatar", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = WhatsAppEmerald)
-                }
-            }
-            Spacer(modifier = Modifier.height(4.dp))
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(presetAvatars) { avatarUrl ->
-                    val isSelected = selectedAvatar == avatarUrl
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .clickable { selectedAvatar = avatarUrl }
-                            .border(
-                                width = if (isSelected) 3.dp else 1.dp,
-                                color = if (isSelected) WhatsAppEmerald else Color.Transparent,
-                                shape = CircleShape
-                            )
+
+                    var isGenerating by remember { mutableStateOf(false) }
+                    val context = androidx.compose.ui.platform.LocalContext.current
+                    Button(
+                        onClick = {
+                            isGenerating = true
+                            authViewModel.generateAiAvatar("Professional futuristic digital avatar 3d") { generated ->
+                                selectedAvatar = generated
+                                isGenerating = false
+                                android.widget.Toast.makeText(context, "AI Avatar generated successfully!", android.widget.Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        enabled = !isGenerating,
+                        colors = ButtonDefaults.buttonColors(containerColor = WhatsAppEmerald),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                        shape = RoundedCornerShape(20.dp)
                     ) {
-                        AsyncImage(
-                            model = avatarUrl,
-                            contentDescription = "Preset avatar",
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        if (isGenerating) {
+                            CircularProgressIndicator(modifier = Modifier.size(14.dp), color = Color.White, strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+                        Text(if (isGenerating) "Generating..." else "✨ AI Avatar", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = Color.White)
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
             // Display Name Field
             OutlinedTextField(
